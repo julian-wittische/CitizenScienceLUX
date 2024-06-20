@@ -1,5 +1,5 @@
 ################################################################################
-################ GOAL: invasive plant species distribution #####################
+################### GOAL: citizen science data analysis#########################
 ################################################################################
 # Author: Julian Wittische (Musée National d'Histoire Naturelle Luxembourg)
 # Request: self/Paul Braun
@@ -8,23 +8,7 @@
 ################################################################################
 
 ############ TO DO LIST
-
-############ Loading libraries
-library(sf)
-library(raster)
-library(ggplot2)
-library(rgeoboundaries)
-
-############ Load and preprocess iNaturalist observations
-inat <- read.csv("S:/BDPatNat/_Julian/ENV_DATA_EUROPE/inat-lux-combined.csv", comment.char="#")
-head(inat)
-
-# Research-grade observations only
-res <- inat[inat$quality_grade=="research",]
-
-# Incomplete coordinates
-res  <- res[complete.cases(res$longitude),]
-res  <- res[complete.cases(res$latitude),]
+# Use server because we need at least 46 Gb of RAM
 
 # Crop observations to only include ones from Luxembourg
 lux_borders <- geoboundaries("Luxembourg", adm_lvl="adm0")
@@ -89,13 +73,3 @@ mean(min_distances)
 mean(min_distances_rand)
 
 wilcox.test(min_distances, min_distances_rand)
-
-# Find the less observed classes of animals
-anim <- inat[inat$quality_grade=="research",]
-anim <- anim[anim$taxon_kingdom_name=="Animalia",]
-tab <- table(anim$taxon_class_name)
-tab <- tab[order(tab,decreasing = FALSE)] 
-taxnames <- names(tab[c(1:11)])[c(-1,-7)]
-taxnames
-
-unique(anim[anim$taxon_class_name%in%taxnames, "taxon_species_name"])
