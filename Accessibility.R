@@ -1,5 +1,5 @@
 ################################################################################
-################### GOAL: citizen science data analysis#########################
+################### GOAL: citizen science data analysis ########################
 ################################################################################
 # Author: Julian Wittische (Musée National d'Histoire Naturelle Luxembourg)
 # Request: self/Paul Braun
@@ -8,68 +8,49 @@
 ################################################################################
 
 ############ TO DO LIST
-# Use server because we need at least 46 Gb of RAM
 
-# Crop observations to only include ones from Luxembourg
-lux_borders <- geoboundaries("Luxembourg", adm_lvl="adm0")
-lux_borders <- st_transform(lux_borders, crs="EPSG:2169")
-coords <- res[,c("longitude","latitude")]
-coords <- st_as_sf(x = coords, coords = c("longitude", "latitude"), crs = "EPSG:4326")
-coords <- st_transform(coords, crs="EPSG:2169")
 
-crop_logical <- st_contains(lux_borders, coords, sparse=FALSE)
-res <- res[which(crop_logical==FALSE),]
 
-coords <- st_intersection(coords, lux_borders)
-
-roads <- st_read("S:/BDPatNat/_Julian/ENV_DATA_EUROPE/roadsLUX2169_1.geojson")
+# roads of Luxembourg and surroundings (bounding box)
+roads <- st_read("./ENV_DATA_EUROPE/roadsLUX2169_1.geojson")
 roads <- st_intersection(lux_borders, roads, tolerance=0)
 roadsimp <- st_simplify(roads, dTolerance=50, preserveTopology = FALSE)
-gc()
-
-atcf_dist_road <- st_distance(coords, roadsimp)
-atcf_dist_road_min <- apply(atcf_dist_road, 1, which.min)
+atcf_nearest_road <- st_nearest_feature(coords, roadsimp, check_crs = TRUE, longlat = FALSE)
+atcf_dist_road <- st_distance(coords, roadsimp[atcf_nearest_road,], by_element = TRUE)
 is.matrix(atcf_dist_road)
-beepr::beep(7)
 gc()
-
-min_distances <- numeric(nrow(atcf_dist_road))
-for (i in 1:nrow(atcf_dist_road)){
-  min_distances[i] <- atcf_dist_road[i, atcf_dist_road_min[i]]
-  print(paste(i,"/", nrow(atcf_dist_road)))
-}
-
-# We have a simple computer and we need to delete stuff to not overwhelm RAP
-print(object.size(atcf_dist_road), units = "Gb")
-rm(atcf_dist_road)
 
 # Let us compare with random locations
-rand <- st_sample(lux_borders, 300000)
-
-atcf_dist_road_rand <- st_distance(rand, roadsimp)
-atcf_dist_road_rand_min <- apply(atcf_dist_road_rand, 1, which.min)
+rand <- st_sample(lux_borders, nrow(res))
+atcf_nearest_road_rand <- st_nearest_feature(rand, roadsimp, check_crs = TRUE, longlat = FALSE)
+atcf_dist_road_rand <- st_distance(rand, roadsimp[atcf_nearest_road_rand,], by_element = TRUE)
 is.matrix(atcf_dist_road_rand)
-beepr::beep(7)
 gc()
 
-min_distances_rand <- numeric(nrow(atcf_dist_road_rand))
-for (i in 1:nrow(atcf_dist_road_rand)){
-  min_distances_rand[i] <- atcf_dist_road_rand[i, atcf_dist_road_rand_min[i]]
-  print(paste(i,"/", nrow(atcf_dist_road_rand)))
-}
-
-# We have a simple computer and we need to delete stuff to not overwhelm RAP
-print(object.size(atcf_dist_road_rand), units = "Gb")
-rm(atcf_dist_road_rand)
+roadObsDist <- as.numeric(atcf_dist_road) 
+roadObsDistRand <- as.numeric(atcf_dist_road_rand) 
 
 # Mean comparison test
-car::qqPlot(min_distances) # distribution not obvious
-car::qqPlot(min_distances_rand)
+qqPlot(roadObsDist) # not normal
+qqPlot(roadObsDistRand)
 
-descdist(min_distances, discrete = FALSE)
-descdist(min_distances_rand, discrete = FALSE)
+descdist(roadObsDist, discrete = FALSE)
+descdist(roadObsDistRand, discrete = FALSE)
 
-mean(min_distances)
-mean(min_distances_rand)
+mean(roadObsDist)
+sd(roadObsDist)
+mean(roadObsDistRand)
+sd(roadObsDistRand)
 
-wilcox.test(min_distances, min_distances_rand)
+wilcox.test(roadObsDist, roadObsDistRand, alternative="less")
+ks.test(roadObsDist, roadObsDistRand, alternative="less")
+
+plotdf <- cbind(as.numeric(c(roadObsDist, roadObsDistRand)), c(rep("EMP", nrow(res)), rep("RAND", nrow(res))))
+colnames(plotdf) <- c("Distance", "EmpirRandom")
+plotdf <- as.data.frame(plotdf)
+plotdf$Distance <- as.numeric(plotdf$Distance)
+
+ggplot(plotdf, aes(x = Distance, fill = EmpirRandom)) +
+  geom_density(alpha = .5) + 
+  geom_vline(xintercept=25, linetype = "longdash") 
+

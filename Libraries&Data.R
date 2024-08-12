@@ -8,14 +8,53 @@
 ################################################################################
 
 ############ Loading libraries
+### GIS and plotting 
 library(sf)
 library(raster)
 library(ggplot2)
 library(rgeoboundaries)
+library(dplyr)
+library(tidyverse)
+
+### Stats
+library(fitdistrplus)
+library(car)
+
+# ############ Necessary packages
+# ### Creating GIS layers
+# library(raster)
+# library(terra)
+# library(sf)
+# library(ggplot2)
+# library(magrittr)
+# library(osmdata)
+
+### Point extraction
+
+### Analysis
+library(DHARMa)
+library(lme4)
+library(spaMM)
+library(INLA)
+
+############ Working directories for the data
+os <- Sys.info()
+### RStudio server
+if (os[1]=="Linux"){
+  setwd("/home/jwittische/Data/")
+}
+### Windows work
+if (os[1]=="Windows"&os[4]=="MC232706"){
+  setwd("W://01-Service/SCR/Julian/")
+}
+### Windows home
+if (os[1]=="Windows"&os[4]!="MC232706"){
+  setwd("old")
+}
 
 ############ Load and preprocess iNaturalist observations
 # Load data (check if it is the latest that Paul wants)
-inat <- read.csv("S:/BDPatNat/_Julian/ENV_DATA_EUROPE/inat-lux-combined.csv", comment.char="#")
+inat <- read.csv("./ENV_DATA_EUROPE/inat-lux-combined.csv", comment.char="#")
 head(inat)
 
 # Incomplete coordinates
@@ -25,9 +64,15 @@ inat  <- inat[complete.cases(inat$latitude),]
 # Research-grade observations only
 res <- inat[inat$quality_grade=="research",]
 
+# Crop observations to only include ones from Luxembourg (research-grade)
+lux_borders <- geoboundaries("Luxembourg", adm_lvl="adm0")
+lux_borders <- st_transform(lux_borders, crs="EPSG:2169")
+coords <- res[,c("longitude","latitude")]
+coords <- st_as_sf(x = coords, coords = c("longitude", "latitude"), crs = "EPSG:4326")
+coords <- st_transform(coords, crs="EPSG:2169")
+coords <- st_intersection(coords, lux_borders)
+crop_logical <- st_contains(lux_borders, coords, sparse=FALSE)
+res <- res[which(crop_logical==TRUE),]
+
 # verifiable observations only
 verif <- inat[inat$quality_grade!="casual",]
-
-
-
-
