@@ -8,34 +8,37 @@
 ################################################################################
 
 ############ Loading libraries
-### GIS and plotting 
+
+### Reading files
+library(readxl)
+
+### GIS 
 library(sf)
 library(raster)
-library(ggplot2)
+library(terra)
 library(rgeoboundaries)
+
+### GIS and plotting
+library(ggplot2)
+
+### Data manipulation
+library(magrittr)
 library(dplyr)
 library(tidyverse)
+
+### Loading data
+library(osmdata)
+library(rinat)
 
 ### Stats
 library(fitdistrplus)
 library(car)
 
-# ############ Necessary packages
-# ### Creating GIS layers
-# library(raster)
-# library(terra)
-# library(sf)
-# library(ggplot2)
-# library(magrittr)
-# library(osmdata)
-
-### Point extraction
-
-### Analysis
-library(DHARMa)
-library(lme4)
-library(spaMM)
-library(INLA)
+# ### Analysis
+# library(DHARMa)
+# library(lme4)
+# library(spaMM)
+# library(INLA)
 
 ############ Working directories for the data
 os <- Sys.info()
@@ -53,9 +56,11 @@ if (os[1]=="Windows"&os[4]!="MC232706"){
 }
 
 ############ Load and preprocess iNaturalist observations
-# Load data (check if it is the latest that Paul wants)
-inat <- read.csv("./ENV_DATA_EUROPE/inat-lux-combined.csv", comment.char="#")
-head(inat)
+# Load data
+
+# New data
+inat <- read_excel("./ENV_DATA_EUROPE/MASTER_inat-lux-combined.xlsx", sheet = 2)
+inat <- as.data.frame(inat)
 
 # Incomplete coordinates
 inat  <- inat[complete.cases(inat$longitude),]
