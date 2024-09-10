@@ -6,8 +6,9 @@
 # Start: Spring 2024
 # Data: MNHNL
 ################################################################################
+############ SCRIPT OBJECTIVE:
 
-############ ROAD NETWORK
+############ Load road network
 
 ## osmdata package
 # bb <- getbb("Grand Duché de Luxembourg", featuretype="country")
