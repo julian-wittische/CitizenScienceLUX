@@ -106,24 +106,38 @@ com$percent.protected <- com2$percentage_protected
 st_write(com, "commune_dataset.gpkg", append=FALSE)
 
 ############ Plotting
-ggplot(data=com) + geom_sf(aes(fill=pop))
-ggplot(data=com) + geom_sf(aes(fill=percent.protected))
+ggplot(data=com) + geom_sf(aes(fill=pop)) +
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=percent.protected)) +
+  scale_fill_viridis_c(option = "viridis")
 
-ggplot(data=com) + geom_sf(aes(fill=observations))
-ggplot(data=com) + geom_sf(aes(fill=observers))
-ggplot(data=com) + geom_sf(aes(fill=species))
+ggplot(data=com) + geom_sf(aes(fill=observations))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=observers))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=species))+
+  scale_fill_viridis_c(option = "viridis")
 
-ggplot(data=com) + geom_sf(aes(fill=obsPobservers))
-ggplot(data=com) + geom_sf(aes(fill=speciesPobs))
-ggplot(data=com) + geom_sf(aes(fill=speciesPobservers))
+ggplot(data=com) + geom_sf(aes(fill=obsPobservers))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=speciesPobs))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=speciesPobservers))+
+  scale_fill_viridis_c(option = "viridis")
 
-ggplot(data=com) + geom_sf(aes(fill=observationsPC))
-ggplot(data=com) + geom_sf(aes(fill=observersPC))
-ggplot(data=com) + geom_sf(aes(fill=speciesPC))
+ggplot(data=com) + geom_sf(aes(fill=observationsPC))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=observersPC))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=speciesPC))+
+  scale_fill_viridis_c(option = "viridis")
 
-ggplot(data=com) + geom_sf(aes(fill=observationsPK))
-ggplot(data=com) + geom_sf(aes(fill=observersPK))
-ggplot(data=com) + geom_sf(aes(fill=speciesPK))
+ggplot(data=com) + geom_sf(aes(fill=observationsPK))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=observersPK))+
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=speciesPK))+
+  scale_fill_viridis_c(option = "viridis")
 
 ############ Analysis
 com_df <- st_drop_geometry(com)

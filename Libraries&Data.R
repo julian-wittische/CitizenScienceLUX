@@ -51,7 +51,7 @@ if (os[1]=="Linux"){
 }
 ### Windows work
 if (os[1]=="Windows"&os[4]=="MC232706"){
-  setwd("W://01-Service/SCR/Julian/")
+  setwd("W://01-Service/SCR_Informations Patrimoine Naturel/_Julian/")
 }
 ### Windows home
 if (os[1]=="Windows"&os[4]!="MC232706"){
@@ -62,6 +62,7 @@ if (os[1]=="Windows"&os[4]!="MC232706"){
 # New data
 inat <- read_excel("./ENV_DATA_EUROPE/MASTER_inat-lux-combined.xlsx", sheet = 2)
 inat <- as.data.frame(inat)
+inat2 <- inat
 
 # Incomplete coordinates
 inat  <- inat[complete.cases(inat$longitude),]

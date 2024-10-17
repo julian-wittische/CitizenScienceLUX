@@ -8,7 +8,27 @@
 ################################################################################
 
 ############ TO DO LIST
-# Check with Paul if we want all, verifiable, or research
+
+################################################################################
+
+######### Casual species exploration
+
+### Only casual observation
+cas <- inat[inat$quality_grade=="casual",]
+
+# Common taxa
+sort(table(cas$taxon_species_name), decreasing=TRUE)[1:15]
+
+### Only needs ID
+need <- inat[inat$quality_grade=="needs_id",]
+
+# Common taxa
+sort(table(need$taxon_species_name), decreasing=TRUE)[1:15]
+sum((need$taxon_class_name=="Aves" & !is.na(need$sound_url)), na.rm=TRUE)
+
+# Pelophylax
+sum((need$taxon_genus_name=="Pelophylax" & !is.na(need$image_url)), na.rm=TRUE)
+sum((inat$taxon_genus_name=="Pelophylax" & !is.na(inat$image_url)) & inat$quality_grade=="research", na.rm=TRUE)
 
 # Find the less observed classes of animals
 anim <- res
