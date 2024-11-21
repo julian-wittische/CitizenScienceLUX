@@ -11,14 +11,14 @@
 # Check with Paul if we want all, verifiable, or research
 
 # Find the less observed classes of animals
-anim <- res
+anim <- verif250notobsc
 anim <- anim[anim$taxon_kingdom_name=="Animalia",]
 tab <- table(anim$taxon_class_name)
 tab <- tab[order(tab,decreasing = FALSE)]
-nrow(anim[anim$taxon_species_name=="Harmonia axyridis",]) #read paper
-# Remove two to reach similar number of observations as the H. axyridis 
-taxnames <- names(tab[c(1:11)])[c(-1,-7)]
-taxnames
+sum(anim$taxon_species_name=="Harmonia axyridis", na.rm=TRUE) #read paper
+# Check number of classes to reach similar number of observations as the H. axyridis 
+taxnames <- names(tab[c(1:14)])
+taxnames # Weird Petrozonti name
 # Species names
 unique(anim[anim$taxon_class_name%in%taxnames, "taxon_species_name"])
 # Number of species in those 9 classes

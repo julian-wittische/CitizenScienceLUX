@@ -51,7 +51,7 @@ if (os[1]=="Linux"){
 }
 ### Windows work
 if (os[1]=="Windows"&os[4]=="MC232706"){
-  setwd("W://01-Service/SCR/Julian/")
+  setwd("W:/01_Services/SCR_Informations Patrimoine Naturel/")
 }
 ### Windows home
 if (os[1]=="Windows"&os[4]!="MC232706"){
@@ -60,7 +60,7 @@ if (os[1]=="Windows"&os[4]!="MC232706"){
 
 ############ Load and preprocess iNaturalist observations
 # New data
-inat <- read_excel("./ENV_DATA_EUROPE/MASTER_inat-lux-combined.xlsx", sheet = 2)
+inat <- read_excel("./CITIZEN SCIENCE/iNaturalistLU/paper iNat/MASTER_inat-lux-combined.xlsx", sheet = 5)
 inat <- as.data.frame(inat)
 
 # Incomplete coordinates
@@ -92,4 +92,3 @@ coords2 <-cbind(coords, verif250notobsc)
 # Check
 ggplot() + geom_sf(data=coords2)
 # PASSED
-
