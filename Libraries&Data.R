@@ -62,6 +62,7 @@ if (os[1]=="Windows"&os[4]!="MC232706"){
 # New data
 inat <- read_excel("./CITIZEN SCIENCE/iNaturalistLU/paper iNat/MASTER_inat-lux-combined.xlsx", sheet = 5)
 inat <- as.data.frame(inat)
+inat2 <- inat
 
 # Incomplete coordinates
 inat  <- inat[complete.cases(inat$longitude),]
