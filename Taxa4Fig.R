@@ -63,4 +63,4 @@ inatf[inatf$taxon_kingdom_name == "Fungi", "figure_taxon_name"] <- "Fungi"
 # # Which are there
 # table(inatf[inatf$figure_taxon_name=="", "taxon_kingdom_name"])
 
-write.csv(inatf[,c("oauth_application_name", "quality_grade", "figure_taxon_name")], "Data4Fig.csv")
+#write.csv(inatf[,c("oauth_application_name", "quality_grade", "figure_taxon_name")], "Data4Fig.csv")
