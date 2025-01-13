@@ -9,9 +9,9 @@
 ############ SCRIPT OBJECTIVE: Load communes data and calculate metrics for each 
 
 ############ Load communes
-com <- st_read("~/Data/limadmin.geojson", layer="communes") %>% st_transform(crs="EPSG:2169")
+com <- st_read("W:/01_Services/SCR_Informations Patrimoine Naturel/CITIZEN SCIENCE/iNaturalistLU/paper iNat/limadmin.geojson", layer="communes") %>% st_transform(crs="EPSG:2169")
 com$area <- as.numeric(st_area(com))/1000000
-pop <- read.csv("~/Data/PopCommunes.csv", encoding = "UTF-8")
+pop <- read.csv("W:/01_Services/SCR_Informations Patrimoine Naturel/CITIZEN SCIENCE/iNaturalistLU/paper iNat/PopCommunes.csv", encoding = "UTF-8")
 names(pop)[2] <-  "COMMUNE"
 pop$pop <- rowSums(pop[,3:6])
 pop <- pop[,c(2,7)]

@@ -7,67 +7,64 @@
 # Data: MNHNL
 ################################################################################
 ############ SCRIPT OBJECTIVE: Load libraries and data and clean up data
+################################################################################
+
+############ Local configuration
+source("config.R")
 
 ############ Loading libraries
 
 ### Reading files
-library(readxl)
+library(readxl) #keep
 
 ### GIS 
-library(sf)
-library(raster)
-library(terra)
-library(rgeoboundaries)
+library(sf) #keep
+#library(raster) #remove if not used
+library(terra) #keep
+library(rgeoboundaries) #keep
 
-### GIS and plotting
-library(ggplot2)
-library(units)
-library(sjPlot)
+### Plotting
+library(ggplot2) #keep
+#library(units) #remove if not used
+#library(sjPlot) #remove if not used
 
 ### Data manipulation
-library(magrittr)
-library(dplyr)
-library(tidyverse)
+#library(magrittr)
+#library(dplyr)
+library(tidyverse) #keep
 
 ### Loading data
-library(osmdata)
-library(rinat)
+#library(osmdata) #remove if not used
+#library(rinat) #remove if not used
 
 ### Stats
-library(fitdistrplus)
-library(car)
+#library(fitdistrplus) #remove if not used
+#library(car) #remove if not used
 
-# ### Analysis
-# library(DHARMa)
-# library(lme4)
-# library(spaMM)
-# library(INLA)
-
-############ Working directories for the data
-os <- Sys.info()
-### RStudio server
-if (os[1]=="Linux"){
-  setwd("/home/jwittische/Data/")
-}
-### Windows work
-if (os[1]=="Windows"&os[4]=="MC232706"){
-  setwd("W:/01_Services/SCR_Informations Patrimoine Naturel/")
-}
-### Windows home
-if (os[1]=="Windows"&os[4]!="MC232706"){
-  setwd("old")
-}
+### Date problems
+library(lubridate) #remove if not used
 
 ############ Load and preprocess iNaturalist observations
-# New data
-inat <- read_excel("./CITIZEN SCIENCE/iNaturalistLU/paper iNat/MASTER_inat-lux-combined.xlsx", sheet = 5)
+# Original data
+inat <- read_excel(paste0(DATAPATH,"MASTER_inat-lux-combined.xlsx"), sheet = 5)
 inat <- as.data.frame(inat)
-inat2 <- inat
+inat_all <- inat
 
-# Incomplete coordinates
+# Remove observations with incomplete coordinates
 inat  <- inat[complete.cases(inat$longitude),]
 inat  <- inat[complete.cases(inat$latitude),]
 
+# Casual
+
+# Need
+
+# Research
+
+# Non casual
+noncas <- inat[inat$quality_grade!="casual",]
+
+### Prepare subset for spatial analyses
+ 
 # Verifiable, not obscured, and with geoaccuracy below 250m
 verif250notobsc <- inat[inat$quality_grade!="casual" &
                           inat$coordinates_obscured==FALSE & (

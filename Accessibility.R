@@ -7,10 +7,6 @@
 # Data: MNHNL
 ################################################################################
 
-############ TO DO LIST
-
-
-
 # roads of Luxembourg and surroundings (bounding box)
 roads <- st_read("./ENV_DATA_EUROPE/roadsLUX2169_1.geojson")
 roads <- st_intersection(lux_borders, roads, tolerance=0)
