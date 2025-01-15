@@ -26,7 +26,7 @@ library(rgeoboundaries) #keep
 ### Plotting
 library(ggplot2) #keep
 #library(units) #remove if not used
-#library(sjPlot) #remove if not used
+library(sjPlot) # keep: plot_model
 
 ### Data manipulation
 #library(magrittr)

@@ -11,7 +11,7 @@
 ############ Load communes
 com <- st_read(paste0(ENVIPATH, "limadmin.geojson"), layer="communes") %>% st_transform(crs="EPSG:2169")
 com$area <- as.numeric(st_area(com))/1000000
-pop <- read.csv("W:/01_Services/SCR_Informations Patrimoine Naturel/CITIZEN SCIENCE/iNaturalistLU/paper iNat/PopCommunes.csv", encoding = "UTF-8")
+pop <- read.csv(paste0(ENVIPATH,"/PopCommunes.csv"), encoding = "UTF-8")
 names(pop)[2] <-  "COMMUNE"
 pop$pop <- rowSums(pop[,3:6])
 pop <- pop[,c(2,7)]
@@ -146,3 +146,37 @@ vif(mod)
 summary(mod)
 
 plot_model(mod, type="pred")
+
+############ Minima
+com[which.min(com$observations),]$COMMUNE.x # Biwer
+com[which.min(com$observers),]$COMMUNE.x # Biwer
+com[which.min(com$species),]$COMMUNE.x # Biwer
+
+com[which.min(com$obsPobservers),]$COMMUNE.x # Biwer
+com[which.min(com$speciesPobs),]$COMMUNE.x # Luxembourg
+com[which.min(com$speciesPobservers),]$COMMUNE.x # Luxembourg
+
+com[which.min(com$observationsPC),]$COMMUNE.x # Sanem
+com[which.min(com$observersPC),]$COMMUNE.x # Esch-sur-Alzette
+com[which.min(com$speciesPC),]$COMMUNE.x # Luxembourg
+
+com[which.min(com$observationsPK),]$COMMUNE.x # Biwer
+com[which.min(com$observersPK),]$COMMUNE.x # Biwer
+com[which.min(com$speciesPK),]$COMMUNE.x # Biwer
+
+############ Maxima
+com[which.max(com$observations),]$COMMUNE.x # Luxembourg
+com[which.max(com$observers),]$COMMUNE.x # Luxembourg
+com[which.max(com$species),]$COMMUNE.x # Luxembourg
+
+com[which.max(com$obsPobservers),]$COMMUNE.x # Kiischpelt
+com[which.max(com$speciesPobs),]$COMMUNE.x # Biwer
+com[which.max(com$speciesPobservers),]$COMMUNE.x # Bech
+
+com[which.max(com$observationsPC),]$COMMUNE.x # Kiischpelt
+com[which.max(com$observersPC),]$COMMUNE.x # Kiischpelt
+com[which.max(com$speciesPC),]$COMMUNE.x # Kiischpelt
+
+com[which.max(com$observationsPK),]$COMMUNE.x # Pétange
+com[which.max(com$observersPK),]$COMMUNE.x # Pétange
+com[which.max(com$speciesPK),]$COMMUNE.x # Pétange
