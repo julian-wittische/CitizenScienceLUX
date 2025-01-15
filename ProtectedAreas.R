@@ -7,11 +7,15 @@
 # Data: MNHNL
 ################################################################################
 
-############ TO DO LIST
+# encoding option for sf
+enc.opt <- "ENCODING=latin1"
+enc.opt <- "ENCODING=UTF8"
 
+enc.opt <- "ENCODING=Windows1242"
+enc.opt.z <- "ENCODING=latin1"
 ##### Load Natura 2000 and ZPIN data
-ludh <- st_read(dsn="/vsizip/ludh-20231006.zip", options = "ENCODING=UTF8")
-ludo <- st_read(dsn="/vsizip/ludo-20231006.zip",options = "ENCODING=UTF8")
+ludh <- st_read(dsn=paste0("/vsizip/", ENVIPATH,"ludh-20231006.zip"), options = enc.opt)
+ludo <- st_read(dsn=paste0("/vsizip/", ENVIPATH,"ludo-20231006.zip"), options = enc.opt)
 
 ludh <- ludh[,2:3]
 ludo <- ludo[,2:3]
@@ -31,7 +35,7 @@ ludo <- ludo[,2:3]
 
 # Very bad SITECOD1, bad NATCODE, I have to use the name (NOM)
 
-zpin <- st_read(dsn="/vsizip/zpin-declarees.zip",options = "ENCODING=UTF8")
+zpin <- st_read(dsn=paste0("/vsizip/", ENVIPATH,"zpin-declarees.zip"),options = enc.opt.z)
 zpin <- st_zm(zpin)
 # ERROR: at least 1 geometry not valid
 zpin <- st_make_valid(zpin)
@@ -70,29 +74,40 @@ prot.areas <- rbind(ludh, ludo, zpin)
 in.prot <- st_intersects(prot.areas, coords)
 
 # Number of observations per protected area
-per.prot <- lengths(in.prot)
+prot.areas$per.prot <- lengths(in.prot)
 
 # Observations/km^2 per protected area
-area.per.prot <- as.numeric(st_area(prot.areas))/1000000 # convertin m2 in km2
-obs.per.km2 <- per.prot / area.per.prot
+prot.areas$area.per.prot <- as.numeric(st_area(prot.areas))/1000000 # convertin m2 in km2
+prot.areas$obs.per.km2 <- per.prot / area.per.prot
 
-index.bot1 <- which(obs.per.km2 < quantile(obs.per.km2, 0.025))
-index.top1 <- which(obs.per.km2 > quantile(obs.per.km2, 0.975))
+index.bot1 <- which(obs.per.km2 < quantile(obs.per.km2, 0.1))
+index.top1 <- which(obs.per.km2 > quantile(obs.per.km2, 0.9))
 
 bot1.areas <- prot.areas[index.bot1,]
 bot1.areas 
 top1.areas <- prot.areas[index.top1,]
 top1.areas
 
+top1.areas[5,]$SITENAME <- "Haff Réimech - Taupeschwues"
+
 centroid.df <- st_centroid(rbind(bot1.areas,top1.areas))
 
+seed=666
 ggplot() +
   geom_sf(data=lux_borders, fill=NA, alpha=0.5) +
   geom_sf(data=bot1.areas, fill="darkred") + 
   geom_sf(data=top1.areas, fill="blue") + 
-  geom_sf_text(data=centroid.df, aes(label=SITENAME))
+  geom_sf_text(data=centroid.df, aes(label=SITENAME),position=position_jitter(5000)) +
+  theme_minimal()
 
-### Question Claude
+###### Effect of protected area size on observations
+
+mod <- glmer(per.prot ~ area.per.prot + (1|SITENAME), data=prot.areas, family = poisson)
+sim <- simulateResiduals(mod, refit=T, n=99)
+plotSimulatedResiduals(sim)
+
+################################################################################
+### Questions Claude
 
 claude <- st_contains(prot.areas[prot.areas$SITENAME=="Sonnebierg",], coords)
 sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
@@ -111,6 +126,3 @@ sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
 
 claude <- st_contains(prot.areas[prot.areas$SITENAME=="Schimpach - Carrières de Schimpach",], coords)
 sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
-
-
-# Desnité espèces protégées dans et hors zone

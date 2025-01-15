@@ -38,8 +38,8 @@ library(tidyverse) #keep
 #library(rinat) #remove if not used
 
 ### Stats
-#library(fitdistrplus) #remove if not used
-#library(car) #remove if not used
+library(fitdistrplus) #keep: descdist()
+library(car) #keep: qqPlot()
 
 ### Date problems
 library(lubridate) #remove if not used
