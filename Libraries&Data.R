@@ -14,34 +14,34 @@ source("config.R")
 
 ############ Loading libraries
 
-### Reading files
+###### Reading files
 library(readxl) #keep
 
-### GIS 
+###### GIS 
 library(sf) #keep
 #library(raster) #remove if not used
 library(terra) #keep
-library(rgeoboundaries) #keep
+library(rgeoboundaries) #keep - not on cran anymore; use archive
 
-### Plotting
+###### Plotting
 library(ggplot2) #keep
 #library(units) #remove if not used
 library(sjPlot) # keep: plot_model
 
-### Data manipulation
+###### Data manipulation
 #library(magrittr)
 #library(dplyr)
 library(tidyverse) #keep
 
-### Loading data
+###### Loading data
 #library(osmdata) #remove if not used
 #library(rinat) #remove if not used
 
-### Stats
+###### Stats
 library(fitdistrplus) #keep: descdist()
 library(car) #keep: qqPlot()
 
-### Date problems
+###### Date problems
 library(lubridate) #remove if not used
 
 ############ Load and preprocess iNaturalist observations
@@ -80,13 +80,5 @@ coords <- st_intersection(coords, lux_borders)
 crop_logical <- st_contains(lux_borders, coords, sparse=FALSE)
 verif250notobsc <- verif250notobsc[which(crop_logical==TRUE),]
 
-# Check
-ggplot() + geom_sf(data=coords)
-# PASSED
-
 # Add info back to sf object as fields
 coords2 <-cbind(coords, verif250notobsc)
-
-# Check
-ggplot() + geom_sf(data=coords2)
-# PASSED
