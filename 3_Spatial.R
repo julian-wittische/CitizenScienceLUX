@@ -6,7 +6,10 @@
 # Script objective : Analyses of the spatial context focus section 
 
 ############ Load data ----
-load("iNat.RData")
+load("iNat.RData") # Created using 1_Data.R
+
+############ Loading libraries ----
+source("0_Libraries.R")
 
 ############ Accessibility ----
 source("Accessibility.R")

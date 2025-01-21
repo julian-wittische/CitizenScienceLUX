@@ -6,4 +6,7 @@
 # Script objective : Analyses of the City Nature Challenge
 
 ############ Load data ----
-load("iNat.RData")
+load("iNat.RData") # Created using 1_Data.R
+
+############ Loading libraries ----
+source("0_Libraries.R")

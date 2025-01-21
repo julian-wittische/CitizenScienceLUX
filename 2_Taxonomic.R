@@ -6,7 +6,10 @@
 # Script objective : Analyses of the taxonomic focus section
 
 ############ Load data ----
-load("iNat.RData")
+load("iNat.RData") # Created using 1_Data.R
+
+############ Loading libraries ----
+source("0_Libraries.R")
 
 ############ Completeness of species inventory ----
 
@@ -200,5 +203,3 @@ sum(tabn[1:29])
 taxnamesn <- names(tabn[c(1:29)])[c(-24)]
 taxnamesn
 unique(nonanim[nonanim$taxon_class_name%in%taxnamesn, "taxon_species_name"])
-
-

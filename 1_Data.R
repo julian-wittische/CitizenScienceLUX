@@ -3,42 +3,13 @@
 # Request: self/Paul Braun
 # Start: Spring 2024
 # Data: MNHNL
-# Script objective : Load libraries and data and clean up data
+# Script objective : Load and clean up data
 
 ############ Local configuration ----
 source("config.R")
 
 ############ Loading libraries ----
-
-### Reading files
-library(readxl) #keep
-
-### GIS
-library(sf) #keep
-#library(raster) #remove if not used
-library(terra) #keep
-library(rgeoboundaries) #keep - not on cran anymore; use archive
-
-### Plotting
-library(ggplot2) #keep
-#library(units) #remove if not used
-library(sjPlot) # keep: plot_model
-
-### Data manipulation
-#library(magrittr)
-#library(dplyr)
-library(tidyverse) #keep
-
-### Loading data
-#library(osmdata) #remove if not used
-#library(rinat) #remove if not used
-
-### Stats
-library(fitdistrplus) #keep: descdist()
-library(car) #keep: qqPlot()
-
-### Date problems
-library(lubridate) #remove if not used
+source("0_Libraries.R")
 
 ############ Load and preprocess observations ----
 
