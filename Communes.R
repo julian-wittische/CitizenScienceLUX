@@ -1,12 +1,9 @@
-################################################################################
-################### GOAL: citizen science data analysis ########################
-################################################################################
+######################## PROJECT: citizen science data analysis
 # Author: Julian Wittische (Musée National d'Histoire Naturelle Luxembourg)
 # Request: self/Paul Braun
 # Start: Spring 2024
 # Data: MNHNL
-################################################################################
-############ SCRIPT OBJECTIVE: Load communes data and calculate metrics for each 
+# Script objective : Load communes data and calculate metrics for each 
 
 ############ Load communes
 com <- st_read(paste0(ENVIPATH, "limadmin.geojson"), layer="communes") %>% st_transform(crs="EPSG:2169")
@@ -180,3 +177,6 @@ com[which.max(com$speciesPC),]$COMMUNE.x # Kiischpelt
 com[which.max(com$observationsPK),]$COMMUNE.x # Pétange
 com[which.max(com$observersPK),]$COMMUNE.x # Pétange
 com[which.max(com$speciesPK),]$COMMUNE.x # Pétange
+
+
+############ Number of unique species per commune (municipality endemism)
