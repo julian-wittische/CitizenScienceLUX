@@ -1,16 +1,16 @@
-################################################################################
-################### GOAL: citizen science data analysis ########################
-################################################################################
+######################## PROJECT: citizen science data analysis
 # Author: Julian Wittische (Musée National d'Histoire Naturelle Luxembourg)
 # Request: self/Paul Braun
 # Start: Spring 2024
 # Data: MNHNL
-################################################################################
-############ SCRIPT OBJECTIVE: analyses of the taxonomic focus section 
-################################################################################
+# Script objective : Analyses of the taxonomic focus section
 
-################################################################################
-############ Completeness of species inventory
+############ Load data ----
+load("iNat.RData")
+
+############ Completeness of species inventory ----
+
+###### Load iconic taxa 
 
 ###### iNat species richness
 inat_fig4 <- inatf[inatf$quality_grade=="research",]
@@ -78,8 +78,7 @@ insect_inat <- insect_inat %>%
 hist(insect_inat$unique_count)
 print(insect_inat, n=70)
 
-################################################################################
-############ Number of observations per species in each iconic taxa
+############ Number of observations per species in each iconic taxa ----
 
 ###### Iconic taxa
 source("Taxa4Fig.R")
@@ -148,10 +147,7 @@ ggplot(barplot, aes(x = mean, y = reorder(taxa, mean), fill=taxa)) +  # reorder 
   theme(axis.text=element_text(size=16, colour = "black"),
         axis.title=element_text(size=18))
 
-
-
-################################################################################
-############ Other explorations
+############ Other explorations ----
 
 ### Casual species exploration
 
