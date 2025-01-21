@@ -1,67 +1,55 @@
-################################################################################
-################### GOAL: citizen science data analysis ########################
-################################################################################
+######################## PROJECT: citizen science data analysis
 # Author: Julian Wittische (Musée National d'Histoire Naturelle Luxembourg)
 # Request: self/Paul Braun
 # Start: Spring 2024
 # Data: MNHNL
-################################################################################
-############ SCRIPT OBJECTIVE: Load libraries and data and clean up data
-################################################################################
+# Script objective : Load libraries and data and clean up data
 
-############ Local configuration
+############ Local configuration ----
 source("config.R")
 
-############ Loading libraries
+############ Loading libraries ----
 
-###### Reading files
+### Reading files
 library(readxl) #keep
 
-###### GIS 
+### GIS
 library(sf) #keep
 #library(raster) #remove if not used
 library(terra) #keep
 library(rgeoboundaries) #keep - not on cran anymore; use archive
 
-###### Plotting
+### Plotting
 library(ggplot2) #keep
 #library(units) #remove if not used
 library(sjPlot) # keep: plot_model
 
-###### Data manipulation
+### Data manipulation
 #library(magrittr)
 #library(dplyr)
 library(tidyverse) #keep
 
-###### Loading data
+### Loading data
 #library(osmdata) #remove if not used
 #library(rinat) #remove if not used
 
-###### Stats
+### Stats
 library(fitdistrplus) #keep: descdist()
 library(car) #keep: qqPlot()
 
-###### Date problems
+### Date problems
 library(lubridate) #remove if not used
 
-############ Load and preprocess iNaturalist observations
-# Original data
+############ Load and preprocess observations ----
+
+### Original data
 inat <- read_excel(paste0(DATAPATH,"MASTER_inat-lux-combined.xlsx"), sheet = 5)
 inat <- as.data.frame(inat)
 inat_all <- inat
 
-# Remove observations with incomplete coordinates
+### Remove observations with incomplete coordinates
 inat  <- inat[complete.cases(inat$longitude),]
 inat  <- inat[complete.cases(inat$latitude),]
-
-# Casual
-
-# Need
-
-# Research
-
-# Non casual
-noncas <- inat[inat$quality_grade!="casual",]
 
 ### Prepare subset for spatial analyses
  
@@ -81,4 +69,5 @@ crop_logical <- st_contains(lux_borders, coords, sparse=FALSE)
 verif250notobsc <- verif250notobsc[which(crop_logical==TRUE),]
 
 # Add info back to sf object as fields
-coords2 <-cbind(coords, verif250notobsc)
+coords2 <- cbind(coords, verif250notobsc)
+save(inat_all, inat, verif250notobsc, lux_borders, coords, coords2, file="iNat.RData")
