@@ -106,23 +106,6 @@ mod <- glmer(per.prot ~ area.per.prot + (1|SITENAME), data=prot.areas, family = 
 sim <- simulateResiduals(mod, refit=T, n=99)
 plotSimulatedResiduals(sim)
 
-################################################################################
-### Questions Claude
 
-claude <- st_contains(prot.areas[prot.areas$SITENAME=="Sonnebierg",], coords)
-sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
 
-claude <- st_contains(prot.areas[prot.areas$SITENAME=="Sonnebierg",], coords)
-sort(table(res[unlist(claude), "user_id"]), decreasing=TRUE)
-
-claude <- st_contains(prot.areas[prot.areas$SITENAME=="Aarnescht",], coords)
-sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
-
-claude <- st_contains(prot.areas[prot.areas$SITENAME=="Massif forestier du Stiefeschboesch",], coords)
-sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
-
-claude <- st_contains(prot.areas[prot.areas$SITENAME=="Schimpach - Carrières de Schimpach",], coords)
-sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
-
-claude <- st_contains(prot.areas[prot.areas$SITENAME=="Schimpach - Carrières de Schimpach",], coords)
-sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
+############ Make table S1 ----

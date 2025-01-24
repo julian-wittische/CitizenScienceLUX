@@ -5,7 +5,7 @@
 # Data: MNHNL
 # Script objective : Load communes data and calculate metrics for each 
 
-############ Load communes
+############ Load commune data ----
 com <- st_read(paste0(ENVIPATH, "limadmin.geojson"), layer="communes") %>% st_transform(crs="EPSG:2169")
 com$area <- as.numeric(st_area(com))/1000000
 pop <- read.csv(paste0(ENVIPATH,"/PopCommunes.csv"), encoding = "UTF-8")
@@ -20,9 +20,9 @@ com <- left_join(com, pop)
 # ggplot()+ geom_sf(data=com)
 # # PASSED
 
-############ Calculate metrics
+############ Calculate commune metrics ----
 
-### Commune level; absolute values
+###### Commune: absolute values
 
 # Spatial join 
 joined <- st_join(coords2, com, left=FALSE)
@@ -47,7 +47,7 @@ com$speciesPobs <- com$species/com$observations
 # Community specialization (basic ratio)
 com$speciesPobservers <- com$species/com$observers
 
-### Commune per capita
+###### Commune per capita
 
 # Observations per capita                                                                                                         
 com$observationsPC <- com$observations/com$pop
@@ -58,7 +58,7 @@ com$observersPC <- com$observers/com$pop
 # Species per capita
 com$speciesPC <- com$species/com$pop
 
-### Commune per km2
+###### Commune per km2
 
 # Observations per commune per km2                                                                                                         
 com$observationsPK <- com$observations/com$area
@@ -69,44 +69,31 @@ com$observersPK <- com$observers/com$area
 # Species per km2
 com$speciesPK <- com$species/com$area
 
-### Percentage of protected area in commune
-com2 <- com
-com2$area_municipality <- as.numeric(st_area(com2))/1000000
-intersection <- st_intersection(com2, st_union(prot.areas))
-intersection$area_intersection <- st_area(intersection)
+###### Number of unique species per commune (municipality endemism)
 
-intersection_summary <- intersection %>%
-  group_by(COMMUNE) %>% summarise(area_prot_in_municipality = sum(area_intersection))
+# Calculate the number of distinct communes for each species
+species_commune_counts <- joined %>%
+  st_drop_geometry() %>%  # Drop geometry for easier processing
+  group_by(scientific_name) %>%
+  summarise(num_communes = n_distinct(COMMUNE)) %>%
+  filter(num_communes == 1)  # Retain species found in only one commune
 
-inter <- st_drop_geometry(intersection_summary)
-inter$area_prot_in_municipality <- as.numeric(inter$area_prot_in_municipality)/1000000
-inter <- rbind(inter, c("Diekirch", 0))
-inter$area_prot_in_municipality <- as.numeric(inter$area_prot_in_municipality)
+# Filter original data for species with commune-level endemism
+commune_endemism <- joined %>%
+  st_drop_geometry() %>%
+  inner_join(species_commune_counts, by = "scientific_name") %>%
+  group_by(COMMUNE) %>%
+  summarise(endemic_species_count = n_distinct(scientific_name))
 
-com2 <- left_join(com2, inter)
+com <- com %>%
+  left_join(commune_endemism, by = "COMMUNE")
 
-com2 <- com2 %>%
-  mutate(percentage_protected = (area_prot_in_municipality / area_municipality) * 100)
+com$endemism_rate <- com$endemic_species_count/com$species
 
-ggplot() +
-  geom_sf(data = com2, aes(fill = percentage_protected), color = "black") +  # Fill by percentage
-  scale_fill_viridis_c(option = "plasma", name = "% Protected") +  # Use a color scale for the percentage
-  theme_minimal() +
-  labs(title = "Percentage of Municipality Area Covered by Protected Areas",
-       subtitle = "Each municipality is shaded by the percentage of its area in a protected area",
-       fill = "Protected %") +
-  theme(legend.position = "right")
+com[order(com$endemism_rate, decreasing=TRUE),]
+com[order(com$endemism_rate, decreasing=FALSE),]
 
-com$percent.protected <- com2$percentage_protected
-
-# Export for Paul
-st_write(com, "commune_dataset.gpkg", append=FALSE)
-
-############ Plotting
-ggplot(data=com) + geom_sf(aes(fill=pop)) +
-  scale_fill_viridis_c(option = "viridis")
-ggplot(data=com) + geom_sf(aes(fill=percent.protected)) +
-  scale_fill_viridis_c(option = "viridis")
+############ Plotting indices per commune ----
 
 ggplot(data=com) + geom_sf(aes(fill=observations))+
   scale_fill_viridis_c(option = "viridis")
@@ -136,15 +123,8 @@ ggplot(data=com) + geom_sf(aes(fill=observersPK))+
 ggplot(data=com) + geom_sf(aes(fill=speciesPK))+
   scale_fill_viridis_c(option = "viridis")
 
-############ Analysis
-com_df <- st_drop_geometry(com)
-mod <- glm(speciesPobs ~ as.numeric(area) + as.numeric(percent.protected) + observers, data=com_df)
-vif(mod)
-summary(mod)
 
-plot_model(mod, type="pred")
-
-############ Minima
+############ Commune indices minima ----
 com[which.min(com$observations),]$COMMUNE.x # Biwer
 com[which.min(com$observers),]$COMMUNE.x # Biwer
 com[which.min(com$species),]$COMMUNE.x # Biwer
@@ -161,7 +141,11 @@ com[which.min(com$observationsPK),]$COMMUNE.x # Biwer
 com[which.min(com$observersPK),]$COMMUNE.x # Biwer
 com[which.min(com$speciesPK),]$COMMUNE.x # Biwer
 
-############ Maxima
+com[which.min(com$endemic_species_count),]$COMMUNE #"Heffingen"
+com[which.min(com$endemism_rate),]$COMMUNE #"Heffingen"
+
+
+############ Commune indices maxima ----
 com[which.max(com$observations),]$COMMUNE.x # Luxembourg
 com[which.max(com$observers),]$COMMUNE.x # Luxembourg
 com[which.max(com$species),]$COMMUNE.x # Luxembourg
@@ -178,5 +162,11 @@ com[which.max(com$observationsPK),]$COMMUNE.x # Pétange
 com[which.max(com$observersPK),]$COMMUNE.x # Pétange
 com[which.max(com$speciesPK),]$COMMUNE.x # Pétange
 
+com[which.max(com$endemic_species_count),]$COMMUNE # Luxembourg
+com[which.max(com$endemism_rate),]$COMMUNE # Luxembourg
 
-############ Number of unique species per commune (municipality endemism)
+############ Make table S2 ----
+
+
+############ Export df for other software ----
+st_write(com, "commune_dataset.gpkg", append=FALSE)

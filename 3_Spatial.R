@@ -5,6 +5,9 @@
 # Data: MNHNL
 # Script objective : Analyses of the spatial context focus section 
 
+############ Local configuration ----
+source("config.R")
+
 ############ Load data ----
 load("iNat.RData") # Created using 1_Data.R
 
@@ -14,7 +17,7 @@ source("0_Libraries.R")
 ############ Accessibility ----
 source("Accessibility.R")
 
-############ Land cover ----
+############ Land cover analysis----
 source("LandCover.R")
 
 ############ Communes ----
