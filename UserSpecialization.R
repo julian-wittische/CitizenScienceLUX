@@ -5,4 +5,7 @@
 # Data: MNHNL
 # Script objective : finding out clusters of users with regard to specialization and activity
 
+############ 
+
+
 user <- get_inat_user_stats()

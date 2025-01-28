@@ -26,7 +26,8 @@ library(tidyverse) #keep
 
 ############ Loading data ----
 #library(osmdata) #remove if not used
-#library(rinat) #remove if not used
+library(rinat) #remove if not used
+library(rgbif)
 
 ############ Stats ----
 library(fitdistrplus) #keep: descdist()
@@ -34,3 +35,6 @@ library(car) #keep: qqPlot()
 
 ############ Date problems ----
 library(lubridate) #remove if not used
+
+############ Development help ----
+library(beepr)
