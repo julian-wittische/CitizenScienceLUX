@@ -166,7 +166,15 @@ com[which.max(com$endemic_species_count),]$COMMUNE # Luxembourg
 com[which.max(com$endemism_rate),]$COMMUNE # Luxembourg
 
 ############ Make table S2 ----
+ commune_tab <- data.frame(commune=com$COMMUNE,
+                           obsPK=round(com$observationsPK, 2),
+                           surface=round(com$area, 2),
+                           humans=com$pop,
+                           species=com$species)
 
+commune_tab <- commune_tab[order(commune_tab$obsPK, decreasing=TRUE),]
+
+View(commune_tab)
 
 ############ Export df for other software ----
-st_write(com, "commune_dataset.gpkg", append=FALSE)
+# st_write(com, "commune_dataset.gpkg", append=FALSE)

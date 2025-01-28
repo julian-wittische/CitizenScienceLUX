@@ -25,5 +25,3 @@ source("Communes.R")
 
 ############ Protected areas ----
 source("ProtectedAreas.R")
-
-############ Temporal ----

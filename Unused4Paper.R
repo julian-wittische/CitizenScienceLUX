@@ -61,3 +61,34 @@ sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
 
 claude <- st_contains(prot.areas[prot.areas$SITENAME=="Schimpach - Carrières de Schimpach",], coords)
 sort(table(res[unlist(claude), "user_name"]), decreasing=TRUE)
+
+##############################
+# exploring natura 2000
+over <- st_sym_difference(ludh, ludo)
+area_over <- st_area(over)
+
+st_area(st_sym_difference(ludh[ludh$SITECODE=="LU0001028",], ludo[ludo$SITECODE=="LU0002008",]))
+st_join(ludh, ludo, join=st_overlaps)
+
+lol <- st_join(ludh, ludo, join=st_equals, left=TRUE)
+
+ggplot() +
+   geom_sf(data=lux_borders, fill=NA) +
+   geom_sf(data=ludh, fill="red", alpha=0.5) +
+   geom_sf(data=ludo, fill="yellow", alpha=0.5)
+
+# Very bad SITECOD1, bad NATCODE, I have to use the name (NOM)
+# Trying to get what we need using the rinat package
+inat2 <- get_inat_obs(query = NULL,
+                      taxon_name = NULL,
+                      taxon_id = NULL,
+                      place_id = "120582",
+                      quality = NULL,
+                      geo = NULL,
+                      annotation = NULL,
+                      year = 2024,
+                      month = 9,
+                      day = 9,
+                      bounds = NULL,
+                      maxresults = 100,
+                      meta = FALSE)
