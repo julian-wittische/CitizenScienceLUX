@@ -23,4 +23,8 @@ source("0_Libraries.R")
 
 ############ Territory ----
 
+###### Split observers into local and non-local
+
+
+
 ############ Temporal ----

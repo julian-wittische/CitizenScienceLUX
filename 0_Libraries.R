@@ -13,6 +13,7 @@ library(sf) #keep
 #library(raster) #remove if not used
 library(terra) #keep
 library(rgeoboundaries) #keep - not on cran anymore; use archive
+library(sp) #for use with the adehabitatHR package
 
 ############ Plotting ----
 library(ggplot2) #keep
@@ -28,10 +29,12 @@ library(tidyverse) #keep
 #library(osmdata) #remove if not used
 library(rinat) #remove if not used
 library(rgbif)
+library(httr) #
 
 ############ Stats ----
 library(fitdistrplus) #keep: descdist()
 library(car) #keep: qqPlot()
+library(adehabitatHR) #for user home range estimation
 
 ############ Date problems ----
 library(lubridate) #remove if not used
