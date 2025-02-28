@@ -30,6 +30,22 @@ sorted_count <- count[order(count$count, decreasing = TRUE),]
 ### Percentage of IDs done by each user
 sorted_count$percent <- sorted_count$count/nrow(id)*100 
 
+# Plot showing the quickly saturating empirical "curve": most identifications are made by few people
+plot(cumsum(sorted_count$percent), type="s", xlim=c(1,length((sorted_count$percent))),
+     ylim=c(0,100), col="red", ylab="Proportion of identifications",
+     xlab="Identifiers sorted by # of identifications",  yaxs="i")
+abline(h=79, col="black", lty=5)
+abline(v=500, col="black", lty=5)
+abline(h=sorted_count$percent[1], lty=5)
+
+# Top 500
+cumsum(sorted_count$percent)[1:500]
+# 78.34%
+
+500/length(sorted_count$percent)
+
+5/length(sorted_count$percent)
+
 ### How many single ID-users?
 sum(sorted_count$count==1)
 # %

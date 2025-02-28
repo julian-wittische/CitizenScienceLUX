@@ -12,6 +12,7 @@ totalIDfiers <- 7130 # accessed on site
 # Top 500
 500/totalIDfiers # 7% of IDfiers
 sum(top500IDper)*100 # 89.2% of IDs
+# 
 
 # Top 5% IDfiers
 7130*0.05
