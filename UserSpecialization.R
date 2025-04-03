@@ -7,5 +7,4 @@
 
 ############ 
 
-
 user <- get_inat_user_stats()

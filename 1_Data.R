@@ -90,13 +90,6 @@ inatf[inatf$taxon_kingdom_name=="Plantae" & !inatf$taxon_figure_name %in% c("Non
 # Fungi
 inatf[inatf$taxon_kingdom_name == "Fungi", "taxon_figure_name"] <- "Fungi"
 
-# # Any left
-# table(inatf$taxon_figure_name, useNA = "ifany")
-# 
-# # Which are there
-# table(inatf[inatf$taxon_figure_name=="", "taxon_kingdom_name"])
 
-###### For special graph for Paul
-# write.csv(inatf[,c("oauth_application_name", "quality_grade", "taxon_figure_name")], "Data4Fig.csv")
-
+######
 save(inat_all, inat, inatverif250notobsc, lux_borders, coords, coords2, inatf, file="iNat.RData")

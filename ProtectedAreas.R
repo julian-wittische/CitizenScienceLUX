@@ -5,6 +5,15 @@
 # Data: MNHNL
 # Script objective : Load protected areas data and calculate metrics for each 
 
+############ Load data ----
+load("iNat.RData") # Created using 1_Data.R
+
+############ Local configuration ----
+source("config.R")
+
+############ Loading libraries ----
+source("0_Libraries.R")
+
 ############ Loading protected area data ----
 ####### Encoding option for sf
 enc.opt <- "ENCODING=latin1"

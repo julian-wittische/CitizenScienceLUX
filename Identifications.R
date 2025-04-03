@@ -7,6 +7,8 @@
 
 ############ Load identification data ----
 
+load("iNat.Rdata")
+
 ### Read
 id <- read.csv(paste0(DATAPATH, "identifications.csv"))
 
@@ -61,3 +63,13 @@ only1 <- id[id$user_id%in%sorted_count[sorted_count$count==1,]$user_id,]
 sum(only1$own_observation=="True")/nrow(id)*100
 
 ############ Territory stuff ----
+library(rinat)
+obs <- get_inat_obs_id(107410918)
+
+inat_all
+get_inat_user_stats(
+  
+# New variables
+  
+  
+load("iNat.Rdata")

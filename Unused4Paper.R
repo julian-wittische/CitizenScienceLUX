@@ -92,3 +92,13 @@ inat2 <- get_inat_obs(query = NULL,
                       bounds = NULL,
                       maxresults = 100,
                       meta = FALSE)
+
+################################################################################
+# # Any left
+# table(inatf$taxon_figure_name, useNA = "ifany")
+# 
+# # Which are there
+# table(inatf[inatf$taxon_figure_name=="", "taxon_kingdom_name"])
+
+###### For special graph for Paul
+# write.csv(inatf[,c("oauth_application_name", "quality_grade", "taxon_figure_name")], "Data4Fig.csv")
