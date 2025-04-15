@@ -1,25 +1,34 @@
-########## REMOVE WHEN EVERYTHING WORKS
-TESTING <- 10 ########## REMOVE WHEN EVERYTHING WORKS
-########## REMOVE WHEN EVERYTHING WORKS
-
-
 library(rinat)
 library(dplyr)
 
+source("get_inat_obs_user_JW.R")
+source("get_all_obs_user_json_JW.R")
+
 observer <- data.frame(table(inat_all$user_id))
 colnames(observer) <- c("user_id", "num_obs_lux")
-observer <- observer[order(observer$num_obs_lux, decreasing = TRUE),]
-inat_all$user_id <- as.factor(inat_all$user_id)
 
-observer <- observer %>%
-  left_join(inat_all %>% select(user_id, user_login), by = "user_id")
+# observer <- observer[order(observer$num_obs_lux, decreasing = TRUE),]
+# inat_all$user_id <- as.factor(inat_all$user_id)
 
+ALL_OBS <- vector(mode = "list", length = nrow(observer))
 
-lol <- get_inat_obs_user("cobymeester", maxresults = 50000)
+cumulative_obs <- 0
 
-########## REMOVE WHEN EVERYTHING WORKS
-observer <- observer[1:TESTING,] ########## REMOVE WHEN EVERYTHING WORKS
-########## REMOVE WHEN EVERYTHING WORKS
+for (i in 1:nrow(observer)){
+  temp_pre <- Sys.time()
+  ALL_OBS[[i]] <- get_all_obs_user_json_JW(observer$user_id[i], delay=0.15)
+  cat(paste0(round(i/nrow(observer),2)*100, "% of observers done"),
+      paste0(difftime(Sys.time(),temp_pre, units="mins"), " mins"),
+      sep="\n")
+  cat("\n")
+  cumulative_obs <- cumulative_obs + length(ALL_OBS[[i]]$quality_grade)
+  cat(paste(cumulative_obs, "observations"))
+  cat("\n")
+}
+
+################################################################################
+################################################################################
+################################################################################
 
 observer$num_obs_wld <- numeric(length=length(observer$user))
 to_remove_index <-  numeric(0)

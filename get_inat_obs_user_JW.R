@@ -20,13 +20,11 @@ get_inat_obs_user_JW <- function (username, delay = 1){
   total_res <- as.numeric(ping$headers$`x-total-entries`)
   print(total_res)
   
-  if (total_res == 0) {
-    stop("Your search returned zero results. Perhaps your user does not exist.")
-  }
-  
   data_out <- NULL
   
-  if (total_res >= 10000) {
+  if (length(total_res) == 0) {
+    cat("Your search returned zero results. Perhaps your user does not exist.")
+  } else if (total_res >= 10000) {
     cat("User has too many observations. Splitting by year...\n")
     for (year in 2000:2025) {
       # Check how many obs in this year
@@ -80,9 +78,3 @@ get_inat_obs_user_JW <- function (username, delay = 1){
   beep(7)
   return(data_out)
 }
-
-# jw <- get_inat_obs_user_JW("julian_wittische", delay=1)
-# beep(7)
-# 
-# pb <- get_inat_obs_user_JW("paul_luap", delay=1) #TOO MANY REQUESTS
-# beep(7)
