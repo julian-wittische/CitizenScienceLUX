@@ -15,7 +15,7 @@ safe_rbind <- function(df1, df2) {
   rbind(df1, df2)
 }
 
-get_all_obs_user_json_JW <- function(user_id, delay = 1) {
+get_all_obs_user_json_JW <- function(user_id, delay = 1, beep=TRUE) {
   if (!curl::has_internet()) {
     message("No Internet connection.")
     return(invisible(NULL))
@@ -23,10 +23,10 @@ get_all_obs_user_json_JW <- function(user_id, delay = 1) {
   
   base_url <- "https://api.inaturalist.org/v1/observations"
   
-  ping <- GET(base_url, query = list(user_id = user_id, per_page = 1, page = 1))
-  if (http_error(ping)) {
-    message("iNaturalist API is unavailable or user not found.")
-    return(invisible(NULL))
+  ping <- try(GET(base_url, query = list(user_id = user_id, per_page = 1, page = 1)), silent = TRUE)
+  if (inherits(ping, "try-error") || http_error(ping)) {
+    message(sprintf("Ping failed for user '%s'. Skipping user.\n", user_id))
+    return(data.frame())  # return empty data frame so your loop over users can proceed
   }
   
   ping_json <- fromJSON(content(ping, as = "text", encoding = "UTF-8"))
@@ -95,6 +95,6 @@ get_all_obs_user_json_JW <- function(user_id, delay = 1) {
     }
   }
   
-  beep(7)
+  if(beep==TRUE) beep(7);
   return(data_out)
 }
