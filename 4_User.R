@@ -8,6 +8,10 @@
 ############ Load data ----
 load("iNat.RData") # Created using 1_Data.R
 
+###### All observations from Luxembourg users
+
+all <- load("ALL_OBS.RData")
+
 ############ Local configuration ----
 source("config.R")
 
@@ -17,14 +21,18 @@ source("0_Libraries.R")
 ############ Identifiers ----
 
 
+############ Activity clustering ----
+source("Activity.R")
 
-
-############ User specialization ----
 
 ############ Territory ----
 
-###### Split observers into local and non-local
+###### Split observers into resident and visitors
+source("ResidentVisitor.R")
+
+###### For locals (residents), define their "territory" in terms of size and 
+
+############ User specialization ----
 
 
 
-############ Temporal ----

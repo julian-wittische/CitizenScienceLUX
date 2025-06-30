@@ -70,9 +70,3 @@ for (i in 1:length(observer$user)){
   print(paste(round(i/length(observer$user)*100),"%",";", i, "th user"))
 }
 observer <- observer[!(1:nrow(observer) %in% to_remove_index),]
-
-all_data_obs <- NULL
-for (i in 1:length(observer$user)){
-  all_data_obs <- rbind(all_data_obs, get_inat_obs_user_JW(observer$)
-
-###### The first 4 ones are beyond 10 000 so we have to change the function
