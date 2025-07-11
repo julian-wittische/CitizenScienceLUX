@@ -31,7 +31,7 @@ verif250notobsc <- inat[inat$quality_grade!="casual" &
 
 # Crop observations to only include ones from Luxembourg
 lux_borders <- geoboundaries("Luxembourg", adm_lvl="adm0")
-lux_borders <- st_transform(lux_borders, crs="EPSG:2169")
+lux_borders_2169 <- st_transform(lux_borders, crs="EPSG:2169")
 coords <- verif250notobsc[,c("longitude","latitude")]
 coords <- st_as_sf(x = coords, coords = c("longitude", "latitude"), crs = "EPSG:4326")
 coords <- st_transform(coords, crs="EPSG:2169")

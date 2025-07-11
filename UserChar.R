@@ -9,6 +9,4 @@
 
 load("ALL_OBS4.RData")
 names(ALL_OBS)
-ALL_OBS$co
-
 ALL_OBS[1,]
