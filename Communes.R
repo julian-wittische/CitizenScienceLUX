@@ -94,6 +94,28 @@ com[order(com$endemism_rate, decreasing=TRUE),]
 com[order(com$endemism_rate, decreasing=FALSE),]
 
 ############ Plotting indices per commune ----
+com$percent.protected <- com2$percentage_protected
+
+### Taxonomic coverage of iNaturalist compared to national database
+
+# Load mdata data
+
+# Remove everything after 10/05/2024 if necessary
+
+# Remove all stuff not identified to species
+inatsp <-
+mdatasp <-    
+
+# Plotting checkpoint for this coverage specifically  
+  
+# Export for Paul
+st_write(com, "commune_dataset.gpkg", append=FALSE)
+
+############ Plotting
+ggplot(data=com) + geom_sf(aes(fill=pop)) +
+  scale_fill_viridis_c(option = "viridis")
+ggplot(data=com) + geom_sf(aes(fill=percent.protected)) +
+  scale_fill_viridis_c(option = "viridis")
 
 ggplot(data=com) + geom_sf(aes(fill=observations))+
   scale_fill_viridis_c(option = "viridis")
