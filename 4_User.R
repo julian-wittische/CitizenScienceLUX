@@ -16,6 +16,16 @@ source("utils.R")
 
 ############ Load data ----
 load(paste0(DATAPATH,"all_obs/all.RData"))
+lux_borders <- readRDS("lux_borders.RDS")
+all <- all[!is.na(all$location),]
+latlon_mat <- do.call(rbind, strsplit(all$location, ","))
+latlon_mat <- apply(latlon_mat, 2, as.numeric)
+points_sf <- st_as_sf(
+  data.frame(lon = latlon_mat[,2], lat = latlon_mat[,1]),
+  coords = c("lon", "lat"),
+  crs = 4326
+)
+luxornot <-st_within(points_sf, lux_borders, sparse = FALSE)[,1]
 
 ############ Activity metrics ----
 
@@ -37,19 +47,18 @@ user_char <- data.frame(active_days = num, #number of active days (observed on)
                         RorV = chr, #residency interpretation: resident or visitor
                         maxobs = num) #maximum observations in one day
 
-
 for (i in 1: length(observers)){
   user_data <- all %>% filter(user.id == observers[i])
-  user_data$luxornot <- sapply(user_data$location, luxornot)
   user_char[i, "active_days"] <- length(table(user_data$observed_on_details.date))
   user_char[i, "active_days_lu"] <- length(table(user_data[user_data$luxornot==TRUE,]$observed_on_details.date))
   user_char[i, "active_period"] <- as.numeric(max(as.Date(user_data$created_at_details.date)) - min(as.Date(user_data$created_at_details.date)))
   user_char[i, "perc_o_lu"] <- round(sum(user_data$luxornot)/nrow(user_data), 5) 
-  user_char[i, "perc_d_lu"] <- round((active_days_lu / active_days), 5)
-  user_char[i, "h"] <- perc_o_lu*0.4 + perc_d_lu*0.6
-  user_char[i, "RorV"] <- ifelse(h > 0.5, "Resident", "Visitor")
   user_char[i, "maxobs"] <- max(table(user_data$observed_on_details.date))
+  cat(paste("User",i,observers[i]),"---","\n")
 }
+user_char$perc_d_lu <- round((user_char$active_days_lu / user_char$active_days), 5)
+user_char$h <- user_char$perc_o_lu*0.4 + user_char$perc_d_lu*0.6
+user_char$RorV <- ifelse(user_char$h > 0.5, "Resident", "Visitor")
 
 ############ Taxonomic observer specialization ----
 
