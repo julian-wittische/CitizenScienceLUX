@@ -22,7 +22,7 @@ library(sjPlot) # keep: plot_model
 
 ############ Data manipulation ----
 #library(magrittr)
-#library(dplyr)
+library(dplyr)
 library(tidyverse) #keep
 
 ############ Loading data ----
