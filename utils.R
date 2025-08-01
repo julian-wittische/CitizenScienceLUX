@@ -16,3 +16,6 @@ luxornot <- function(coord){
   
   return(c(st_within(point_sf, lux_borders, sparse = FALSE)))
 }
+
+############ Early enthusiasm ----
+early_ent <- function
