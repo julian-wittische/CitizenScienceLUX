@@ -32,6 +32,11 @@ all$luxornot <- luxornot
 
 ###### Initialize
 observers <- sort(unique(all$user.id))
+
+### TESTING
+observers <- observers[1:50]
+### TESTING
+
 num <- numeric(length=length(observers))
 chr <- character(length=length(observers))
 date <- as.Date(chr)
@@ -51,10 +56,14 @@ user_char <- data.frame(user.id = num,
                         obs_1st_mth = num, #number of observations in the first month
                         perc_early = num, #percentage of observations made in the first month
                         early_cat = chr, #categorization of users as early enthusiasts, other, and NA (too recent to be considered)
+                        mean_month_numeric = num, # circular mean of activity months (1-12, not degrees)
+                        rho =num, #concentration of seasonality
                         rel_act = num) #relative activity (active days/active period)
                         
 user_char$user.id <- observers
 user_char$user.login <- all$user.login[match(observers, all$user.id)]
+most_recent <- max(as.Date(all$created_at_details.date))
+most_recent <- as.Date("2024-05-13")
 
 for (i in 1: length(observers)){
   user_data <- all %>% filter(user.id == observers[i])
@@ -66,6 +75,7 @@ for (i in 1: length(observers)){
   user_char[i, "perc_o_lu"] <- round(sum(user_data$luxornot)/user_char[i, "total_obs"], 5) 
   user_char[i, "maxobs"] <- max(table(user_data$observed_on_details.date))
   user_char[i, "obs_1st_mth"] <- sum(as.Date(user_data$created_at_details.date) <= (user_char[i, "first_upl"] + 30))
+  user_char[i, c("mean_month_numeric", "rho")] <- seasonality(user_data)[2:3]
   cat(paste("User",i,observers[i]),"---","\n")
 }
 
@@ -74,9 +84,47 @@ user_char$h <- user_char$perc_o_lu*0.4 + user_char$perc_d_lu*0.6
 user_char$RorV <- ifelse(user_char$h > 0.5, "Resident", "Visitor")
 user_char$rel_act <- user_char$active_days/user_char$active_period
 user_char$perc_early <- user_char$obs_1st_mth/user_char$total_obs
-user_char$early_cat <- ifelse(user_char$active_period<=30, NA,
+user_char$early_cat <- ifelse((most_recent - user_char$first_upl)<=180, "Too new to tell",
                               ifelse(user_char$perc_early==1, "Drop-off", "Not drop-off"))
 
+user_circular <- user_char[,c("mean_month_numeric", "rho")]
+
+user_circular$mean_month_numeric <- (user_circular$mean_month_numeric %% (2 * pi)) * 12 / (2 * pi)
+
+user_circular_plot <- user_circular %>%
+  filter(!is.na(mean_month_numeric), !is.na(rho)) %>%
+  mutate(mean_month_rad = mean_month_numeric * 2 * pi / 12)
+
+###### Plotting check
+ggplot(user_circular_plot,
+       aes(x = mean_month_rad, y = rho)) +
+  geom_point(color = "steelblue", alpha = 0.7, size = 2) +
+  coord_polar(start = 0) +
+  scale_x_continuous(
+    breaks = seq(0, 11 * 2 * pi / 12, length.out = 12),
+    labels = month.abb,
+    limits = c(0, 2 * pi)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    breaks = seq(0, 1, by = 0.25)
+  ) +
+  labs(
+    x = NULL,
+    y = "ρ (circular concentration)",
+    title = "Seasonality Strength and Mean Month (Polar View)"
+  ) +
+  theme_minimal()
+
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+
+###### WEIRD STUFF considering 13/05/2024
+user_char[which(user_char$first_upl=="2025-05-29"),]
+user_char[which(user_char$first_upl=="2024-06-10"),]
 
 ###### List of acquaintances
 acq <- c("cpepin", "julian_wittische", "paul_luap", "callcc", "vitalfranz",
@@ -85,7 +133,7 @@ acq <- c("cpepin", "julian_wittische", "paul_luap", "callcc", "vitalfranz",
          "cobymeester", "francisbirlenbach", "pinkgrasshopper", "wolffchristiane",
          "claudekolwelter", "tastyrna", "raedwulf68", "marielouise2", "georges3",
          "michelfrisch", "bee-together", "sylvie393", "jpir", "feitzfern",
-         "luciamia", "")
+         "luciamia", "tastyrna", "matteobellu239")
 
 acq <- sort(acq)
 user_char[user_char$user.login %in% acq,]

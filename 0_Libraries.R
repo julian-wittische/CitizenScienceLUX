@@ -36,8 +36,8 @@ library(fitdistrplus) #keep: descdist()
 library(car) #keep: qqPlot()
 library(adehabitatHR) #for user home range estimation
 
-############ Date problems ----
+############ Date  ----
 library(lubridate) #remove if not used
-
+library(circular) #consider dates in a circular fashion
 ############ Development help ----
 library(beepr)
