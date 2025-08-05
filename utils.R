@@ -55,7 +55,7 @@ seasonality <- function(user_df) {
   )
   
   mean_rad <- as.numeric(mean(circ_months_rad))
-  mean_numeric <- (mean_rad %% (2 * pi)) * 12 / (2 * pi)
+  mean_numeric <- (mean_rad %% (2 * pi)) * 12 / (2 * pi) + 1
   rho_val <- as.numeric(rho.circular(circ_months_rad))
   
   return(data.frame(

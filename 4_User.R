@@ -34,7 +34,7 @@ all$luxornot <- luxornot
 observers <- sort(unique(all$user.id))
 
 ### TESTING
-observers <- observers[1:50]
+observers <- observers[1:5]
 ### TESTING
 
 num <- numeric(length=length(observers))
@@ -74,7 +74,7 @@ for (i in 1: length(observers)){
   user_char[i, "active_period"] <- as.numeric(max(as.Date(user_data$created_at_details.date)) - user_char[i, "first_upl"]+1)
   user_char[i, "perc_o_lu"] <- round(sum(user_data$luxornot)/user_char[i, "total_obs"], 5) 
   user_char[i, "maxobs"] <- max(table(user_data$observed_on_details.date))
-  user_char[i, "obs_1st_mth"] <- sum(as.Date(user_data$created_at_details.date) <= (user_char[i, "first_upl"] + 30))
+  user_char[i, "obs_1st_mth"] <- sum(as.Date(user_data$created_at_details.date) <= (user_char[i, "first_upl"] + 100))
   user_char[i, c("mean_month_numeric", "rho")] <- seasonality(user_data)[2:3]
   cat(paste("User",i,observers[i]),"---","\n")
 }
@@ -84,37 +84,15 @@ user_char$h <- user_char$perc_o_lu*0.4 + user_char$perc_d_lu*0.6
 user_char$RorV <- ifelse(user_char$h > 0.5, "Resident", "Visitor")
 user_char$rel_act <- user_char$active_days/user_char$active_period
 user_char$perc_early <- user_char$obs_1st_mth/user_char$total_obs
-user_char$early_cat <- ifelse((most_recent - user_char$first_upl)<=180, "Too new to tell",
+user_char$early_cat <- ifelse((most_recent - user_char$first_upl)<=365, "Too new to tell",
                               ifelse(user_char$perc_early==1, "Drop-off", "Not drop-off"))
 
-user_circular <- user_char[,c("mean_month_numeric", "rho")]
-
-user_circular$mean_month_numeric <- (user_circular$mean_month_numeric %% (2 * pi)) * 12 / (2 * pi)
-
+################################################################################
+user_circular <- user_char[,c("mean_month_numeric", "rho", "early_cat")]
 user_circular_plot <- user_circular %>%
   filter(!is.na(mean_month_numeric), !is.na(rho)) %>%
-  mutate(mean_month_rad = mean_month_numeric * 2 * pi / 12)
+  mutate(mean_month_rad = (mean_month_numeric-1) * 2 * pi / 12)
 
-###### Plotting check
-ggplot(user_circular_plot,
-       aes(x = mean_month_rad, y = rho)) +
-  geom_point(color = "steelblue", alpha = 0.7, size = 2) +
-  coord_polar(start = 0) +
-  scale_x_continuous(
-    breaks = seq(0, 11 * 2 * pi / 12, length.out = 12),
-    labels = month.abb,
-    limits = c(0, 2 * pi)
-  ) +
-  scale_y_continuous(
-    limits = c(0, 1),
-    breaks = seq(0, 1, by = 0.25)
-  ) +
-  labs(
-    x = NULL,
-    y = "ρ (circular concentration)",
-    title = "Seasonality Strength and Mean Month (Polar View)"
-  ) +
-  theme_minimal()
 
 ######################################################################################
 ######################################################################################
