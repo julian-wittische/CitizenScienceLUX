@@ -1,3 +1,38 @@
+######################################################################################
+
+act_clust <- hdbscan(act_clust_df, minPts=10)
+act_clust 
+plot(act_clust)
+
+###### WEIRD STUFF considering 13/05/2024
+user_char[which(user_char$first_upl=="2025-05-29"),]
+user_char[which(user_char$first_upl=="2024-06-10"),]
+
+###### List of acquaintances
+acq <- c("cpepin", "julian_wittische", "paul_luap", "callcc", "vitalfranz",
+         "axel_hochkirch", "sleguil", "guypopbio", "wollef", "thelminger",
+         "taniaw", "taniawalisch", "atur", "cecellina", "ykrippel", "hinatea",
+         "cobymeester", "francisbirlenbach", "pinkgrasshopper", "wolffchristiane",
+         "claudekolwelter", "tastyrna", "raedwulf68", "marielouise2", "georges3",
+         "michelfrisch", "bee-together", "sylvie393", "jpir", "feitzfern",
+         "luciamia", "tastyrna", "matteobellu239")
+
+acq <- sort(acq)
+user_char[user_char$user.login %in% acq,]
+View(user_char[user_char$user.login %in% acq,])
+
+
+taxa_clust_df <- as.data.frame(vegan::decostand(inat_classes_wide[,4:13],
+                                                method = "hellinger"))
+
+taxa_clust <- hdbscan(taxa_clust_df, minPts=2, cluster_selection_epsilon = 0.20)
+taxa_clust 
+plot(taxa_clust)
+
+cbind(numeric_column_means(user_charnoNA[which(act_clust$cluster==1),]),
+      numeric_column_means(user_charnoNA[which(act_clust$cluster==2),]),
+      numeric_column_means(user_charnoNA[which(act_clust$cluster==3),]))
+
 ###### Percentage of protected area in commune
 com2 <- com
 com2$area_municipality <- as.numeric(st_area(com2))/1000000

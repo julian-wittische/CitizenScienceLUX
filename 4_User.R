@@ -15,120 +15,10 @@ source("0_Libraries.R")
 source("utils.R")
 
 ############ Load data ----
-load(paste0(DATAPATH,"all_obs/all.RData"))
-lux_borders <- readRDS("lux_borders.RDS")
-all <- all[!is.na(all$location),]
-latlon_mat <- do.call(rbind, strsplit(all$location, ","))
-latlon_mat <- apply(latlon_mat, 2, as.numeric)
-points_sf <- st_as_sf(
-  data.frame(lon = latlon_mat[,2], lat = latlon_mat[,1]),
-  coords = c("lon", "lat"),
-  crs = 4326
-)
-luxornot <- st_within(points_sf, lux_borders, sparse = FALSE)[,1]
-all$luxornot <- luxornot
 
-############ Activity metrics ----
-
-###### Initialize
-observers <- sort(unique(all$user.id))
-
-### TESTING
-observers <- observers[1:5]
-### TESTING
-
-num <- numeric(length=length(observers))
-chr <- character(length=length(observers))
-date <- as.Date(chr)
-
-user_char <- data.frame(user.id = num,
-                        user.login = chr,
-                        total_obs = num, #total number of observations
-                        active_days = num, #number of active days (observed on)
-                        active_days_lu = num, #number of active days in Luxembourg (observed on)
-                        first_upl = date, #date of first upload
-                        active_period = num, #full period of activity (uploaded at); we use created at to avoid issues with scanning old photos
-                        perc_o_lu = num, #% of observations in Luxembourg (compared to global)
-                        perc_d_lu = num, #% of active days in Luxembourg (compared to global)
-                        h = num, #residency index based on Dimson & Gillespie (2023); between 0 and 1, >0.5 means resident
-                        RorV = chr, #residency interpretation: resident or visitor
-                        maxobs = num, #maximum observations in one day
-                        obs_1st_mth = num, #number of observations in the first month
-                        perc_early = num, #percentage of observations made in the first month
-                        early_cat = chr, #categorization of users as early enthusiasts, other, and NA (too recent to be considered)
-                        mean_month_numeric = num, # circular mean of activity months (1-12, not degrees)
-                        rho =num, #concentration of seasonality
-                        rel_act = num) #relative activity (active days/active period)
-                        
-user_char$user.id <- observers
-user_char$user.login <- all$user.login[match(observers, all$user.id)]
-most_recent <- max(as.Date(all$created_at_details.date))
-most_recent <- as.Date("2024-05-13")
-
-for (i in 1: length(observers)){
-  user_data <- all %>% filter(user.id == observers[i])
-  user_char[i, "total_obs"] <- nrow(user_data)
-  user_char[i, "active_days"] <- length(table(user_data$observed_on_details.date))
-  user_char[i, "active_days_lu"] <- length(table(user_data[user_data$luxornot==TRUE,]$observed_on_details.date))
-  user_char[i, "first_upl"] <-  min(as.Date(user_data$created_at_details.date))
-  user_char[i, "active_period"] <- as.numeric(max(as.Date(user_data$created_at_details.date)) - user_char[i, "first_upl"]+1)
-  user_char[i, "perc_o_lu"] <- round(sum(user_data$luxornot)/user_char[i, "total_obs"], 5) 
-  user_char[i, "maxobs"] <- max(table(user_data$observed_on_details.date))
-  user_char[i, "obs_1st_mth"] <- sum(as.Date(user_data$created_at_details.date) <= (user_char[i, "first_upl"] + 100))
-  user_char[i, c("mean_month_numeric", "rho")] <- seasonality(user_data)[2:3]
-  cat(paste("User",i,observers[i]),"---","\n")
-}
-
-user_char$perc_d_lu <- round((user_char$active_days_lu / user_char$active_days), 5)
-user_char$h <- user_char$perc_o_lu*0.4 + user_char$perc_d_lu*0.6
-user_char$RorV <- ifelse(user_char$h > 0.5, "Resident", "Visitor")
-user_char$rel_act <- user_char$active_days/user_char$active_period
-user_char$perc_early <- user_char$obs_1st_mth/user_char$total_obs
-user_char$early_cat <- ifelse((most_recent - user_char$first_upl)<=365, "Too new to tell",
-                              ifelse(user_char$perc_early==1, "Drop-off", "Not drop-off"))
-
-################################################################################
-user_circular <- user_char[,c("mean_month_numeric", "rho", "early_cat")]
-user_circular_plot <- user_circular %>%
-  filter(!is.na(mean_month_numeric), !is.na(rho)) %>%
-  mutate(mean_month_rad = (mean_month_numeric-1) * 2 * pi / 12)
-
-
-######################################################################################
-######################################################################################
-######################################################################################
-######################################################################################
-######################################################################################
-
-###### WEIRD STUFF considering 13/05/2024
-user_char[which(user_char$first_upl=="2025-05-29"),]
-user_char[which(user_char$first_upl=="2024-06-10"),]
-
-###### List of acquaintances
-acq <- c("cpepin", "julian_wittische", "paul_luap", "callcc", "vitalfranz",
-         "axel_hochkirch", "sleguil", "guypopbio", "wollef", "thelminger",
-         "taniaw", "taniawalisch", "atur", "cecellina", "ykrippel", "hinatea",
-         "cobymeester", "francisbirlenbach", "pinkgrasshopper", "wolffchristiane",
-         "claudekolwelter", "tastyrna", "raedwulf68", "marielouise2", "georges3",
-         "michelfrisch", "bee-together", "sylvie393", "jpir", "feitzfern",
-         "luciamia", "tastyrna", "matteobellu239")
-
-acq <- sort(acq)
-user_char[user_char$user.login %in% acq,]
-View(user_char[user_char$user.login %in% acq,])
-
-############ Taxonomic observer specialization ----
-
-###### Split observers into resident and visitors
-resid <- all[all$user.id %in% user_char[user_char$RorV=="Resident", "user.id"],]
-dim(resid)
-
-
-# Data-driven way to find inflexion point
-
-length(table(all$user.id))
-sum(table(all$user.id)>100)
-hist(table(all$user.id), breaks=3000, xlim=c(0,1500))
+###### We need to get rid of users below a certain number of observations
+# Di Cecco 2022 suggest 50 without any justification
+# Data-driven way to find inflection point
 
 library(inflection)
 user_obs_sorted <- log(sort(table(all$user.id)))
@@ -137,10 +27,33 @@ infl <- inflection::uik(1:length(user_obs_sorted), user_obs_sorted)
 threshold <- user_obs_sorted[infl]
 exp(threshold)
 
-hist(user_obs_sorted, type = "l", main = "Sorted User Observation Counts")
-abline(v = threshold, col = "red", lty = 2)
+hist(exp(user_obs_sorted), main = "Sorted User Observation Counts", xlim=c(1,100), breaks=20000)
+abline(v = exp(threshold), col = "red", lty = 2)
+abline(v = 50, col = "blue", lty = 2)
 
-sum(table(all$user.id)>75)
+sum(table(all$user.id)>85)
+
+
+############ Activity metrics ----
+source("Activity.R")
+
+      
+############ Taxonomic observer specialization ----
+source("TaxoClusteringSpe.R")
+
+
+# Split observers into resident and visitors
+resid <- all[all$user.id %in% user_char[user_char$RorV=="Resident", "user.id"],]
+dim(resid)
+
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+
+
+
+
 
 
 

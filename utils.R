@@ -64,3 +64,13 @@ seasonality <- function(user_df) {
     rho = rho_val
   ))
 }
+
+
+#################################################################################
+numeric_column_means <- function(df) {
+  df_num <- df[sapply(df, is.numeric)]
+  means <- colMeans(df_num, na.rm = TRUE)
+  means <- round(means, 2)
+  options(scipen = 999)  # disable scientific notation globally
+  return(means)
+}

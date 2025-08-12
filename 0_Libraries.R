@@ -24,6 +24,7 @@ library(sjPlot) # keep: plot_model
 #library(magrittr)
 library(dplyr)
 library(tidyverse) #keep
+library(data.table)
 
 ############ Loading data ----
 #library(osmdata) #remove if not used
@@ -35,6 +36,10 @@ library(httr) #
 library(fitdistrplus) #keep: descdist()
 library(car) #keep: qqPlot()
 library(adehabitatHR) #for user home range estimation
+library(dbscan) #clustering with density method
+library(vegan) #transformations
+library(mclust) #GMMs
+library(mclustAddons) #GMM entropy
 
 ############ Date  ----
 library(lubridate) #remove if not used
