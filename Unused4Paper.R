@@ -1,3 +1,143 @@
+################################################################################
+
+###### Replace zeros by tiny values
+### Count zero multiplicative
+inat_czm <- cmultRepl(inat_rat, method="CZM", z.delete=FALSE) #no data loss
+# Checkpoint
+tail(inat_classes_wide[,4:13])
+tail(inat_czm)
+rowSums(inat_czm)
+
+###### Isometric Log-Ratio
+inat_ilr <- ilr(inat_czm)
+
+###### Clustering for classes
+gmm_cla <- Mclust(inat_ilr, G=15)
+summary(gmm_cla)
+plot(gmm_cla$BIC)
+summary(gmm_cla$BIC)
+
+### Averages
+cluster_n <- gmm_cla$G
+
+data_matrix <- do.call(rbind, lapply(1:cluster_n, function(k) {
+  v <- numeric_column_means(inat_rat[gmm_cla$classification == k,])
+  v / sum(v)  # normalize so row sums = 1
+}))
+
+### Plot test
+# Convert to data frame and add row IDs
+data_df <- as.data.frame(data_matrix)
+data_df$row_id <- factor(1:cluster_n)
+
+
+# Reshape to long format for ggplot
+data_long <- data_df %>%
+  pivot_longer(cols = -row_id, names_to = "class", values_to = "proportion")
+
+data_long$row_id <- factor(data_long$row_id, levels = rev(unique(data_long$row_id)))
+
+# Define colors
+class_cols <- data.frame(class = c("Liliopsida", "Magnoliopsida", 
+                                   "Agaricomycetes", "Arachnida",
+                                   "Insecta","Actinopterygii",
+                                   "Amphibia", "Reptilia", "Aves","Mammalia"),
+                         col = c("#B2DF8A", "#33A02C", "#FB9A99",
+                                 "#E31A1C", "#FDBF6F", "#FF7F00",
+                                 "#CAB2D6", "#6A3D9A", "#A6CEE3","#1F78B4"), stringsAsFactors = FALSE)
+
+data_long$class <- factor(data_long$class, levels = class_cols$class) # Reverse Y axis
+
+# Create the horizontal stacked bar plot
+ggplot(data_long, aes(x = proportion, y = row_id, fill = class)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.7) +
+  scale_fill_manual(values = setNames(class_cols$col, class_cols$class)) +
+  labs(title = "Proportion of Taxonomic Classes by Row",
+       x = "Proportion",
+       y = "Row",
+       fill = "Class") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  scale_x_continuous(expand = c(0, 0)) # Remove padding on x-axis
+
+################################################################################
+############ Investigate if likely that there are no true specialists
+
+gmm_cla$classification[which(inat_rat$Aves>0.95)]
+# something is wrong, they should all be in the second
+
+gmm_cla$classification[which(inat_rat$Magnoliopsida>0.95)]
+# something is very wrong, they should all be in the 15th cluster
+
+################################################################################
+################################################################################
+################################################################################
+
+### STEP 1: Prepare counts
+# inat_rat = users × 10 classes (counts)
+inat_counts <- round(as.matrix(inat_rat)*1000)
+
+# Step 1: Normalize user counts to proportions
+inat_props <- inat_rat
+
+# Step 2: Convert to data frame with proper column names
+inat_props_df <- as.data.frame(inat_props)
+
+# Step 3: Fit multivariate normal mixture
+set.seed(123)
+inat_log <- log(inat_props_df + 1e-5)
+
+fit_list <- lapply(1:10, function(k) {
+  flexmix(cbind(Liliopsida, Magnoliopsida, Agaricomycetes, Arachnida,
+                Insecta, Actinopterygii, Amphibia, Reptilia, Aves, Mammalia)
+          ~ 1, data = inat_log,
+          k = k, model = FLXMCmvnorm())
+})
+
+fit <- flexmix(cbind(Liliopsida, Magnoliopsida, Agaricomycetes, Arachnida,
+                     Insecta, Actinopterygii, Amphibia, Reptilia, Aves, Mammalia)
+               ~ 1, data = inat_log,
+               k = 10, model = FLXMCmvnorm())
+
+bic_values <- sapply(fit_list, BIC)
+plot(1:length(bic_values), bic_values, type="b", pch=19,
+     xlab="k", ylab="BIC", main="BIC vs number of clusters")
+
+best_k <- which.min(bic_values)
+best_fit <- fit_list[[best_k]]
+clusters <- clusters(best_fit)
+
+# Step 5: Cluster profiles (average proportions per cluster)
+cluster_props <- inat_props_df %>%
+  mutate(cluster = clusters) %>%
+  group_by(cluster) %>%
+  summarise(across(everything(), mean)) %>%
+  ungroup()
+
+# Ensure rows sum to 1
+cluster_props[,-1] <- cluster_props[,-1] / rowSums(cluster_props[,-1])
+rowSums(cluster_props[,-1])
+
+# Compute entropy for each fitted G
+maxK <- 20
+entropy_values <- numeric(maxK)
+bic_values <- numeric(maxK)
+icl_values <- numeric(maxK)
+
+for (i in 1:maxK){
+  modtemp <- Mclust(act_clust_df, G=i)
+  entropy_values[i] <- EntropyGMM(modtemp)
+}
+
+plot(1:20, entropy_values)
+
+output <- clustCombi(data=act_clust_df, modelNames="VEV")
+entPlot(output$MclustOutput$z, output$combiM, reg = c(2,3)) 
+
+
 ######################################################################################
 
 act_clust <- hdbscan(act_clust_df, minPts=10)

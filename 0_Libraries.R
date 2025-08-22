@@ -14,6 +14,7 @@ library(sf) #keep
 library(terra) #keep
 library(rgeoboundaries) #keep - not on cran anymore; use archive
 library(sp) #for use with the adehabitatHR package
+library(rnaturalearth)
 
 ############ Plotting ----
 library(ggplot2) #keep
@@ -40,6 +41,10 @@ library(dbscan) #clustering with density method
 library(vegan) #transformations
 library(mclust) #GMMs
 library(mclustAddons) #GMM entropy
+library(zCompositions) #zero replacement
+library(compositions) #isometric log-ratio
+library(MCMCpack)
+library(flexmix)
 
 ############ Date  ----
 library(lubridate) #remove if not used

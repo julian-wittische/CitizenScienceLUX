@@ -67,7 +67,7 @@ View(user_char)
 apply(act_clust_df, 2, FUN=function(x) sum(is.na(x)))
 user_char[which(is.na(user_char$mean_month_numeric)),]
 user_charnoNA <-user_char[-which(is.na(user_char$mean_month_numeric)),]
-### Remove people with less than 75 observations
+### Remove people with less than 50 observations
 user_charnoNA <- user_charnoNA[user_charnoNA$total_obs>50,]
 
 removed_cols <- which(names(user_char) %in% c("user.id",
@@ -81,7 +81,7 @@ removed_cols <- which(names(user_char) %in% c("user.id",
 
 act_clust_df <- as.data.frame(apply(user_charnoNA[,-removed_cols], 2, scale))
 
-gmm_act <- Mclust(act_clust_df, G=1)
+gmm_act <- Mclust(act_clust_df, G=1:20)
 summary(gmm_act)
 plot(gmm_act)
 
@@ -108,21 +108,6 @@ mod <- Mclust(act_clust_df, G = 1:20)  # Fit 1 to 20 components
 bic_values <- mod$BIC  # matrix: models x G
 best_model <- mod
 
-# Compute entropy for each fitted G
-maxK <- 20
-entropy_values <- numeric(maxK)
-bic_values <- numeric(maxK)
-icl_values <- numeric(maxK)
-
-for (i in 1:maxK){
-  modtemp <- Mclust(act_clust_df, G=i)
-  entropy_values[i] <- EntropyGMM(modtemp)
-}
-
-plot(1:20, entropy_values)
-
-output <- clustCombi(data=act_clust_df, modelNames="VEV")
-entPlot(output$MclustOutput$z, output$combiM, reg = c(2,3)) 
 
 #####
 
