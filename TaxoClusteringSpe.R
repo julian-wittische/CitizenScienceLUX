@@ -14,9 +14,6 @@ taxa_ID <- read.csv(paste0(DATAPATH, "taxa.csv"))
 ### All obs from observers with at least 1 obs in Luxembourg
 load(paste0(DATAPATH,"all_obs/all.RData"))
 
-### Administrative boundaries
-lux_borders <- readRDS("lux_borders.RDS")
-
 ######  Preparing
 ### Remove observations without location
 all <- all[!is.na(all$location),]

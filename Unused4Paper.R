@@ -1,5 +1,19 @@
 ################################################################################
 
+### Keep only observations made by May 10 2024
+mdata_before <- mdata
+# Problem with dates - QUICK DIRTY FIX
+mdata_before$date_end[1:1000000] <- "01/01/1900"
+table(is.na(mdata$date_end))
+#
+mdata_before$date_end <- parse_date_time(mdata_before$date_end, 
+                                         orders = c("d/m/Y", "Y-m-d"))
+
+table(is.na(mdata_before$date_end))
+
+mdata_before <- mdata_before[mdata_before$date_end <= as.Date("10/05/2024","%d/%m/%Y"),]
+dim(mdata_before)
+
 ###### Replace zeros by tiny values
 ### Count zero multiplicative
 inat_czm <- cmultRepl(inat_rat, method="CZM", z.delete=FALSE) #no data loss

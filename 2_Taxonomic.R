@@ -26,24 +26,11 @@ hist(uniq_inat$unique_count)
 print(uniq_inat, n=50)
 
 ###### mData species richness
-files <- list.files(paste0(ENVIPATH,"MDATA2024"), full.names = TRUE, pattern="*.csv")
+files <- list.files(paste0(DATAPATH,"MDATA2025"), full.names = TRUE, pattern="*.csv")
 mdata <- do.call(rbind, lapply(files, function(x) read.csv(x, encoding="latin1")))
 
-### Keep only observations made by May 10 2024
-mdata_before <- mdata
-# Problem with dates - QUICK DIRTY FIX
-mdata_before$date_end[1:1000000] <- "01/01/1900"
-table(is.na(mdata$date_end))
-#
-mdata_before$date_end <- parse_date_time(mdata_before$date_end, 
-                                         orders = c("d/m/Y", "Y-m-d"))
-
-table(is.na(mdata_before$date_end))
-
-mdata_before <- mdata_before[mdata_before$date_end <= as.Date("10/05/2024","%d/%m/%Y"),]
-dim(mdata_before)
 ### Keep only strict mini_mmum columns
-mini_m <- mdata_before[,c("Lat", "Long", "preferred","Taxon_Kingdom", "Taxon_Phylum",
+mini_m <- mdata[,c("Lat", "Long", "preferred","Taxon_Kingdom", "Taxon_Phylum",
                           "Taxon_Class", "Taxon_Order")]
 
 ### Keep only observations with species ID and geolocalisation (avoids old collection stuff)
@@ -87,7 +74,7 @@ print(insect_inat, n=70)
 source("Taxa4Fig.R")
 
 ###### Number of observations per species
-num_sp <- as.data.frame(table(inatf$taxon_species_name))
+num_sp <- as.data.frame(table(inat$taxon_species_name))
 
 ###### Associate iconic taxa names to species
 uniq_figure_tax <- inatf %>%
