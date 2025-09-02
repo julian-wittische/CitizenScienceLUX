@@ -23,7 +23,9 @@ get_all_obs_user_json_JW <- function(user_id, delay = 1, beep=TRUE) {
   
   base_url <- "https://api.inaturalist.org/v1/observations"
   
-  ping <- try(GET(base_url, query = list(user_id = user_id, per_page = 1, page = 1)), silent = TRUE)
+  ping <- try(GET(base_url, query = list(user_id = user_id, per_page = 1, page = 1),
+                  use_proxy("http://proxy.etat.lu", 8080) # CHANGED FOR SERVER
+                  ), silent = TRUE)
   if (inherits(ping, "try-error") || http_error(ping)) {
     message(sprintf("Ping failed for user '%s'. Skipping user.\n", user_id))
     return(data.frame())  # return empty data frame so your loop over users can proceed

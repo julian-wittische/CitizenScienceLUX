@@ -3,11 +3,11 @@ library(dplyr)
 
 source("fun4.R")
 
-observer <- data.frame(table(inat_all$user_id))
+observer <- data.frame(table(inat$user_id))
 colnames(observer) <- c("user_id", "num_obs_lux")
 
 observer <- observer[order(observer$num_obs_lux, decreasing = TRUE),]
-inat_all$user_id <- as.factor(inat_all$user_id)
+inatl$user_id <- as.factor(inat$user_id)
 
 ################################################################################
 ################################################################################
@@ -16,11 +16,13 @@ inat_all$user_id <- as.factor(inat_all$user_id)
 #rm(inat, inat_all, coords, coords2, verif250notobsc)
 # gc()
 
-range_observers <- (4501+783):nrow(observer)
+range_observers <- 1:10
 
 ####### TESTING
 observer2 <- observer[range_observers,]
 #######
+
+###
 
 ALL_OBS <- data.frame()
 
@@ -34,6 +36,7 @@ for (i in 1:nrow(observer2)){
   cat(paste(nrow(ALL_OBS), "observations"), "\n")
   cat(strrep("-", 50), "\n")
 }
-save(ALL_OBS, file="ALL_OBS13.RData")
+
+save(ALL_OBS, file="ALL_OBS_2_1.RData")
 rm(ALL_OBS)
 gc()
