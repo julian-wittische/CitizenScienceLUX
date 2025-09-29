@@ -15,6 +15,8 @@ library(terra) #keep
 library(rgeoboundaries) #keep - not on cran anymore; use archive
 library(sp) #for use with the adehabitatHR package
 library(rnaturalearth)
+library(leaflet)
+library(mapview)
 
 ############ Plotting ----
 library(ggplot2) #keep
