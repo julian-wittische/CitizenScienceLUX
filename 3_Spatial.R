@@ -9,7 +9,7 @@
 source("config.R")
 
 ############ Load data ----
-load("iNat.RData") # Created using 1_Data.R
+#load("iNat.RData") # Created using 1_Data.R
 
 ############ Loading libraries ----
 source("0_Libraries.R")

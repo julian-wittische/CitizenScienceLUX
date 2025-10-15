@@ -5,15 +5,15 @@
 # Request: self/Paul Braun
 # Start: Spring 2024
 # Data: MNHNL
-################################################################################
-############ SCRIPT OBJECTIVE: accessibility analyses 
-################################################################################
+# Script objective : Evaluating whether accessibility has an effect on observation 
+
+############
 
 ###### Load roads of Luxembourg and surroundings (bounding box)
 # Load raw data
 roads <- st_read(paste0(ENVIPATH, "roadsLUX2169_1.geojson"))
 # Remove parts outside Luxembourg
-roads <- st_intersection(lux_borders, roads, tolerance=0)
+roads <- st_intersection(lux_borders_2169, roads, tolerance=0)
 # Simplify road network to make analyses faster
 roadsimp <- st_simplify(roads, dTolerance=50, preserveTopology = FALSE)
 
@@ -27,7 +27,7 @@ gc()
 
 ###### Distance from random locations to roads and large trails
 # Create as many random points as they are observations
-rand <- st_sample(lux_borders, nrow(verif250notobsc))
+rand <- st_sample(lux_borders_2169, nrow(verif250notobsc))
 # Find each pair of observation and their nearest  linear features
 atcf_nearest_road_rand <- st_nearest_feature(rand, roadsimp, check_crs = TRUE, longlat = FALSE)
 # Calculate distance

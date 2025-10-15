@@ -47,6 +47,10 @@ library(zCompositions) #zero replacement
 library(compositions) #isometric log-ratio
 library(MCMCpack)
 library(flexmix)
+library(lme4)
+library(DHARMa)
+library(performance)
+library(MuMIn)
 
 ############ Date  ----
 library(lubridate) #remove if not used

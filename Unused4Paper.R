@@ -1,5 +1,50 @@
 ################################################################################
 
+####################### SONLEZ PAMER ERROR
+
+ggplot() +
+  geom_sf(data = lux_borders_2169, fill = NA, alpha = 0.5) +
+  geom_sf(data = prot.areas[prot.areas$type=="National",], aes(fill = obs.per.km2)) +
+  scale_fill_viridis_c(option = "plasma", trans = "log") +
+  geom_sf(data = coords, size=0.01) +
+  theme_minimal()
+
+# Create a palette for obs.per.km2
+pal <- colorNumeric(
+  palette = viridis(256, option = "plasma"),
+  domain  = prot.areas$obs.per.km2,
+  na.color = "transparent"
+)
+
+library(mapview)
+library(viridis)
+
+# Filter to national protected areas
+nat_areas <- prot.areas[prot.areas$type == "National", ]
+
+# Create mapview with popup labels
+m <- mapview(
+  nat_areas,
+  zcol = "obs.per.km2",          # column controlling fill
+  col.regions = viridis(256, option = "plasma"),
+  at = pretty(range(nat_areas$obs.per.km2, na.rm = TRUE)),
+  layer.name = "Protected Areas",
+  alpha.regions = 0.8,
+  legend = TRUE,
+  popup = nat_areas$SITENAME    # ← this makes name appear on click/hover
+) +
+  mapview(
+    lux_borders_2169,
+    color = "black",
+    alpha.regions = 0,
+    lwd = 1,
+    layer.name = "Lux Borders"
+  )
+
+m
+
+
+
 ### Keep only observations made by May 10 2024
 mdata_before <- mdata
 # Problem with dates - QUICK DIRTY FIX

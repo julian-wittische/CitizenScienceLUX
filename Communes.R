@@ -12,31 +12,67 @@ pop <- read.csv(paste0(ENVIPATH,"/PopCommunes.csv"), encoding = "UTF-8")
 names(pop)[2] <-  "COMMUNE"
 pop$pop <- rowSums(pop[,3:6])
 pop <- pop[,c(2,7)]
+com <- st_make_valid(com)
 com <- left_join(com, pop)
 
-# # Check
-# setdiff(sort(com$COMMUNE), sort(pop$COMMUNE_NOM))
-# setdiff(sort(pop$COMMUNE_NOM),sort(com$COMMUNE))
-# ggplot()+ geom_sf(data=com)
-# # PASSED
+#Checkpoint
+ggplot(data=com) + geom_sf(aes(fill=pop))
+
 
 ############ Calculate commune metrics ----
 
 ###### Commune: absolute values
 
-# Spatial join 
-joined <- st_join(coords2, com, left=FALSE)
+# Spatial join
+st_crs(com) <- st_crs(coords2)
+
+#Checkpoint
+# test
+cm <- coords2[coords2$user_login=="cobymeester",]
+table(cm$place_county_name)
+
+ggplot(data = cm) +
+  geom_sf(data = cm, color = "red", size = 0.1) + # points overlay
+  theme_minimal()
+
+joined_testcm <- st_join(cm, com, join = st_intersects, left = FALSE)
+table(joined_testcm$CANTON)
+
+sum(st_within(cm, com) %>% lengths() > 0)
+
+joined <- st_join(coords2, com, join = st_within, left = FALSE)
+
+length(unique(joined[joined$COMMUNE=="Kiischpelt",]$user_id))
+
+sort(table(joined[joined$COMMUNE=="Kiischpelt",]$user_login), decreasing = T)
+# FALSE!!!
+
+
 
 # Observations                                                                                                        
 com$observations <- lengths(st_intersects(com, coords2))
 
-# Observers
-observers <- joined %>%  group_by(COMMUNE) %>% summarise(observers = n_distinct(user_login))
-com <- st_join(com, observers, left=FALSE)
+observers <- joined %>%  group_by(COMMUNE) %>% summarise(observers = n_distinct(user_id))
+com <- st_join(com, observers, join = st_equals, left=FALSE)
 
 # Species
 species <- joined %>% filter(str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(COMMUNE) %>% summarise(species = n_distinct(scientific_name))
 com <- st_join(com, species, left=FALSE)
+
+# Introduced
+introd_com <- joined %>% filter(introd2==TRUE, str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(COMMUNE) %>% summarise(introd = n_distinct(scientific_name))
+com <- st_join(com, introd_com, left=FALSE)
+com$introd.rate <- com$introd/com$species
+
+# Invasive
+inv_com <- joined %>% filter(inv==TRUE, str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(COMMUNE) %>% summarise(inv = n_distinct(scientific_name))
+com <- st_join(com, inv_com, left=FALSE)
+com$inv.rate <- com$inv/com$species
+
+# Protected
+prot_com <- joined %>% filter(prot==TRUE, str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(COMMUNE) %>% summarise(prot = n_distinct(scientific_name))
+com <- st_join(com, prot_com, left=FALSE)
+com$prot.rate <- com$prot/com$species
 
 # Individual engagement (observation/observer)
 com$obsPobservers <- com$observations/com$observers
@@ -69,6 +105,7 @@ com$observersPK <- com$observers/com$area
 # Species per km2
 com$speciesPK <- com$species/com$area
 
+
 ###### Number of unique species per commune (municipality endemism)
 
 # Calculate the number of distinct communes for each species
@@ -85,33 +122,14 @@ commune_endemism <- joined %>%
   group_by(COMMUNE) %>%
   summarise(endemic_species_count = n_distinct(scientific_name))
 
+commune_endemism$COMMUNE.x <- commune_endemism$COMMUNE
+
 com <- com %>%
-  left_join(commune_endemism, by = "COMMUNE")
+  left_join(commune_endemism, by = "COMMUNE.x")
 
 com$endemism_rate <- com$endemic_species_count/com$species
 
-com[order(com$endemism_rate, decreasing=TRUE),]
-com[order(com$endemism_rate, decreasing=FALSE),]
-
-############ Plotting indices per commune ----
-com$percent.protected <- com2$percentage_protected
-
-### Taxonomic coverage of iNaturalist compared to national database
-
-# Load mdata data
-
-# Remove everything after 10/05/2024 if necessary
-
-# Remove all stuff not identified to species
-inatsp <-
-mdatasp <-    
-
-# Plotting checkpoint for this coverage specifically  
-  
-# Export for Paul
-st_write(com, "commune_dataset.gpkg", append=FALSE)
-
-############ Plotting
+############ Plotting ----
 ggplot(data=com) + geom_sf(aes(fill=pop)) +
   scale_fill_viridis_c(option = "viridis")
 ggplot(data=com) + geom_sf(aes(fill=percent.protected)) +
@@ -146,57 +164,35 @@ ggplot(data=com) + geom_sf(aes(fill=speciesPK))+
   scale_fill_viridis_c(option = "viridis")
 
 
-############ Commune indices minima ----
-com[which.min(com$observations),]$COMMUNE.x # Biwer
-com[which.min(com$observers),]$COMMUNE.x # Biwer
-com[which.min(com$species),]$COMMUNE.x # Biwer
-
-com[which.min(com$obsPobservers),]$COMMUNE.x # Biwer
-com[which.min(com$speciesPobs),]$COMMUNE.x # Luxembourg
-com[which.min(com$speciesPobservers),]$COMMUNE.x # Luxembourg
-
-com[which.min(com$observationsPC),]$COMMUNE.x # Sanem
-com[which.min(com$observersPC),]$COMMUNE.x # Esch-sur-Alzette
-com[which.min(com$speciesPC),]$COMMUNE.x # Luxembourg
-
-com[which.min(com$observationsPK),]$COMMUNE.x # Biwer
-com[which.min(com$observersPK),]$COMMUNE.x # Biwer
-com[which.min(com$speciesPK),]$COMMUNE.x # Biwer
-
-com[which.min(com$endemic_species_count),]$COMMUNE #"Heffingen"
-com[which.min(com$endemism_rate),]$COMMUNE #"Heffingen"
-
-
-############ Commune indices maxima ----
-com[which.max(com$observations),]$COMMUNE.x # Luxembourg
-com[which.max(com$observers),]$COMMUNE.x # Luxembourg
-com[which.max(com$species),]$COMMUNE.x # Luxembourg
-
-com[which.max(com$obsPobservers),]$COMMUNE.x # Kiischpelt
-com[which.max(com$speciesPobs),]$COMMUNE.x # Biwer
-com[which.max(com$speciesPobservers),]$COMMUNE.x # Bech
-
-com[which.max(com$observationsPC),]$COMMUNE.x # Kiischpelt
-com[which.max(com$observersPC),]$COMMUNE.x # Kiischpelt
-com[which.max(com$speciesPC),]$COMMUNE.x # Kiischpelt
-
-com[which.max(com$observationsPK),]$COMMUNE.x # Pétange
-com[which.max(com$observersPK),]$COMMUNE.x # Pétange
-com[which.max(com$speciesPK),]$COMMUNE.x # Pétange
-
-com[which.max(com$endemic_species_count),]$COMMUNE # Luxembourg
-com[which.max(com$endemism_rate),]$COMMUNE # Luxembourg
-
 ############ Make table S2 ----
  commune_tab <- data.frame(commune=com$COMMUNE,
-                           obsPK=round(com$observationsPK, 2),
                            surface=round(com$area, 2),
                            humans=com$pop,
-                           species=com$species)
+                           observation=com$observations,
+                           observers=com$observers,
+                           species=com$species,
+                           obs.per.km2=round(com$observations, 2),
+                           observers.per.km2=round(com$observationsPK, 2),
+                           species.per.km2=round(com$speciesPK, 2),
+                           obs.per.cap=round(com$observationsPC, 2),
+                           observer.per.cap=round(com$observersPC, 2),
+                           species.per.cap=round(com$speciesPC, 2),
+                           unique.sp=com$endemic_species_count,
+                           introd.sp=com$introd,
+                           introd.rate=round(com$introd.rate, 2),
+                           inv.sp=com$inv,
+                           inv.rate=round(com$inv.rate, 2),
+                           prot.sp=com$prot,
+                           prot.rate=round(com$prot.rate, 2))
+                           
 
-commune_tab <- commune_tab[order(commune_tab$obsPK, decreasing=TRUE),]
+commune_tab <- commune_tab[order(commune_tab$observers.per.km2, decreasing=TRUE),]
 
 View(commune_tab)
 
 ############ Export df for other software ----
 # st_write(com, "commune_dataset.gpkg", append=FALSE)
+# Export for Paul
+st_write(com, "commune_dataset.gpkg", append=FALSE)
+View(com
+)
