@@ -4,3 +4,6 @@
 .Ruserdata
 config.R
 iNat.RData
+commune_dataset.gpkg
+verif_noObscured_goodprec.gpkg
+protected_areas.csv
