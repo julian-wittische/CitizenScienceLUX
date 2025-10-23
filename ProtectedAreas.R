@@ -12,9 +12,11 @@
 source("config.R")
 
 ############ Loading libraries ----
-source("0_Libraries.R")
+#source("0_Libraries.R")
+library(sf)
+library(ggplot2)
 
-############ Loading protected area data ----
+############ Loading Natura2000 data ----
 ####### Encoding option for sf
 enc.opt <- "ENCODING=latin1"
 enc.opt <- "ENCODING=UTF8"
@@ -33,7 +35,6 @@ ludh$type <- "Habitats Dir."
 ludo$type <- "Birds Dir."
 
 ### Double check potential full overlap - same name "Dudelange Haard"
-
 # Slight difference
 st_area(ludo[ludo$SITENAME=="Dudelange Haard",])
 st_area(ludh[ludh$SITENAME=="Dudelange Haard",])
@@ -51,12 +52,13 @@ ludh[ludh$SITENAME=="Dudelange Haard",]$SITENAME <- "Dudelange Haard (HD)"
 ludo[ludo$SITENAME=="Esch-sur-Alzette Sud-est - Anciennes minières / Ellergronn",]$SITENAME <- "Esch-sur-Alzette Sud-est - Anciennes minières / Ellergronn (BD)"
 ludh[ludh$SITENAME=="Esch-sur-Alzette Sud-est - Anciennes minières / Ellegronn",]$SITENAME <- "Esch-sur-Alzette Sud-est - Anciennes minières / Ellergronn (HD)"
 
-###### Load ZPIN data
-
+############ Loading ZPIN data ----
 zpin <- st_read(dsn=paste0("/vsizip/", ENVIPATH,"zpin-declarees.zip"),options = enc.opt.z)
 zpin <- st_zm(zpin)
+
 # ERROR: at least 1 geometry not valid
 zpin <- st_make_valid(zpin)
+
 # ERROR: A\r\n and 1 instead of A
 # Correction
 zpin[107,"SOUSZONE"] <- "A"
@@ -86,158 +88,83 @@ sort(zpin_temp$SITENAME)
 # Checkpoint
 ggplot() + geom_sf(data=zpin_temp[zpin_temp$SITENAME=="Laangmuer",])
 
+# Homogenization
 zpin <- zpin_temp
 zpin <- zpin[,c("SITECODE","SITENAME")]
 zpin$SITECODE <- as.character(zpin$SITECODE)
-
 zpin$type <- "National"
-################################################################################
-################################################################################
-################################################################################
 
-###### Combine
+############ Combine and join observations----
 prot.areas <- rbind(ludh, ludo, zpin)
-
-# Spatial join
 st_crs(prot.areas) <- st_crs(coords2)
-# Spatial join 
+
+# Spatial join with observations
 joined_prot <- st_join(coords2, prot.areas, left=FALSE)
 
 # Checkpoint
 sum(table(prot.areas$SITENAME)>1)
 which(table(prot.areas$SITENAME)>1)
 
-centroid.df <- st_centroid(prot.areas)
+############ Calculate protected area metrics ----
+###### Main metrics bloc
+metrics <- joined_prot %>%
+  st_drop_geometry() %>%
+  group_by(SITENAME) %>%
+  summarise(
+    observations = n(),
+    observers = n_distinct(user_login),
+    species =  n_distinct(scientific_name[str_detect(scientific_name, "\\w+ \\w+")]),
+    introd = n_distinct(scientific_name[introd2 == TRUE & str_detect(scientific_name, "\\w+ \\w+")]),
+    inv = n_distinct(scientific_name[inv==TRUE & str_detect(scientific_name, "\\w+ \\w+")]),
+    prot = n_distinct(scientific_name[prot==TRUE & str_detect(scientific_name, "\\w+ \\w+")]),
+    .groups = "drop"
+  )
 
-############ Calculate various metrics ----
-### Observations
-# Number of observations in protected areas
-in.prot <- st_intersects(prot.areas, coords)
+###### Spatial join and adding empty protected areas
+prot.areas <- prot.areas %>%
+  left_join(metrics, by = "SITENAME") %>%
+  mutate(across(c(observers, observations, species, introd, inv, prot), ~replace_na(.x, 0)))
 
-# Number of observations per protected area
-prot.areas$per.prot <- lengths(in.prot)
-
-### Species
-speciesP <- prot.areas %>%
-  left_join(
-    joined_prot %>%
-      st_drop_geometry() %>%               # drop geometry if joined_prot is sf
-      group_by(SITENAME) %>%
-      summarise(species = n_distinct(scientific_name), .groups = "drop"),
-    by = "SITENAME"
-  ) %>%
-  mutate(species = replace_na(species, 0))
-prot.areas_sp <- st_join(prot.areas, speciesP, join = st_equals, left=FALSE)
-
-### Observers
-observersP <- prot.areas %>%
-  left_join(
-    joined_prot %>%
-      st_drop_geometry() %>%               # drop geometry if joined_prot is sf
-      group_by(SITENAME) %>%
-      summarise(observers = n_distinct(user_login), .groups = "drop"),
-    by = "SITENAME"
-  ) %>%
-  mutate(observers = replace_na(observers, 0))
-prot.areas <- st_join(prot.areas, observersP, join = st_equals, left=FALSE)
+###### Introduced, invasive, protected rates
+prot.areas$introd.rate <- prot.areas$introd/prot.areas$species
+prot.areas$inv.rate <- prot.areas$inv/prot.areas$species
+prot.areas$prot.rate <- prot.areas$prot/prot.areas$species
 
 ###### Per km^2
-### Observations/km^2 per protected area
-prot.areas$area.per.prot <- as.numeric(st_area(prot.areas))/1000000 # convertin m2 in km2
-prot.areas$obs.per.km2 <- prot.areas$per.prot / prot.areas$area.per.prot
+prot.areas$area <- as.numeric(st_area(prot.areas))/1000000 # convertin m2 in km2
+prot.areas$obs.per.km2 <- prot.areas$observations / prot.areas$area
+prot.areas$observers.per.km2 <- prot.areas$observers / prot.areas$area
+prot.areas$spe.per.km2 <- prot.areas$species / prot.areas$area
 
-### Prep
-
-
-
-
-
-
-###### Mean and SD
+############ Exploration ----
+### Mean and SD
 mean(prot.areas$obs.per.km2)
 sd(prot.areas$obs.per.km2)
 
-###### Min/Max
+### Min/Max
 View(prot.areas)
 
 ############ Area size effect on obs/km2 ----
-mod <- glmer(per.prot ~ area.per.prot + (1|SITENAME), data=prot.areas, family = poisson)
+mean(prot.areas$observations)
+var(prot.areas$observations)
+
+library(DHARMa)
+library(glmmTMB)
+library(marginaleffects)
+
+mod <- glmer(observations ~ area + type + (1|SITENAME),
+               data=prot.areas, family = poisson)
+
+
 summary(mod)
 sim <- simulateResiduals(mod, refit=T, n=99)
 plotSimulatedResiduals(sim)
 r2(mod)
 model_performance(mod)
 r.squaredGLMM(mod)
+testDispersion(sim)
+avg_slopes(mod, component="conditional")
 
-###### Number of species per protected area
-
-# Species
-species_prot <- joined_prot %>%
-  filter(str_detect(scientific_name, "\\w+ \\w+")) %>%
-  group_by(SITENAME) %>%
-  summarise(species = n_distinct(scientific_name))
-
-# Checkpoint
-lol <- rbind(ludh, ludo, zpin)
-lol[which(lol$SITENAME %!in% species_prot$SITENAME),]
-# "Schimpach - Carrières de Schimpach" has zero observations and hence zero species
-
-### Add it to the dataset
-zeroprot <- prot.areas[prot.areas$SITENAME %in% c("Schimpach - Carrières de Schimpach","Sonlez-Pamer"),]
-zeroprot$species <- 0
-zeroprot <- zeroprot[, c("SITENAME", "species", "geometry")]
-species_prot <- rbind(species_prot, zeroprot)
-
-### Join species
-prot_map <- prot.areas %>%
-  left_join(st_drop_geometry(species_prot), by = "SITENAME") %>%
-  st_as_sf(prot.areas)
-
-###### Introduced, invasive, protected
-
-# Introduced
-introd_prot <- joined_prot %>% filter(introd2==TRUE, str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(SITENAME) %>% summarise(introd = n_distinct(scientific_name))
-prot_map <- st_join(prot_map, introd, left=FALSE)
-prot_map$introd.rate <- prot_map$introd/prot_map$species
-
-# Invasive
-inv_prot <- joined_prot %>% filter(inv==TRUE, str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(SITENAME) %>% summarise(inv = n_distinct(scientific_name))
-prot_map <- st_join(prot_map, inv, left=FALSE)
-prot_map$inv.rate <- prot_map$inv/prot_map$species
-
-# Protected
-prot_prot <- joined_prot %>% filter(prot==TRUE, str_detect(scientific_name, "\\w+ \\w+")) %>% group_by(SITENAME) %>% summarise(prot = n_distinct(scientific_name))
-prot_map <- st_join(prot_map, prot, left=FALSE)
-prot_map$prot.rate <- prot_map$prot/prot_map$species
-
-############ Make table S1 ----
-prot_tab <- data.frame(prot_name=prot_map$SITENAME,
-                          obsPK=round(prot_map$obs.per.km2, 2),
-                          surface=round(prot_map$area.per.prot, 2),
-                       type=prot_map$type,
-                       species=prot_map$species,
-                       observations=$observations,
-                       observers=com$observers,
-                       species=com$species,
-                       obs.per.km2=round(com$observations, 2),
-                       observers.per.km2=round(com$observationsPK, 2),
-                       species.per.km2=round(com$speciesPK, 2),
-                       obs.per.cap=round(com$observationsPC, 2),
-                       observer.per.cap=round(com$observersPC, 2),
-                       species.per.cap=round(com$speciesPC, 2),
-                       unique.sp=com$endemic_species_count,
-                       introd.sp=com$introd,
-                       introd.rate=round(com$introd.rate, 2),
-                       inv.sp=com$inv,
-                       inv.rate=round(com$inv.rate, 2),
-                       prot.sp=com$prot,
-                       prot.rate=round(com$prot.rate, 2))
-
-
-prot_tab <- prot_tab[order(prot_tab$obsPK, decreasing=TRUE),]
-
-View(prot_tab)
-write_excel_csv(prot_tab, "protected_areas.csv")
 
 ############ Plotting exploration
 
@@ -300,5 +227,12 @@ ggplot(prot_tab, aes(x = type, y = obsPK, fill = type)) +
   ) +
   theme_minimal()
 
-######
+############ Exports ----
+############ Make table S1 ----
+
+prot.areas <- prot.areas[order(prot.areas$, decreasing=TRUE),]
+
+write_excel_csv(prot_tab, "protected_areas.csv")
+
+
 

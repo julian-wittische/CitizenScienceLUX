@@ -9,10 +9,11 @@
 source("config.R")
 
 ############ Loading libraries ----
-source("0_Libraries.R")
+#source("0_Libraries.R")
+library(readxl)
+library(sf)
 
 ############ Load and preprocess observations ----
-
 ### Original data
 inat <- read_excel(paste0(DATAPATH,"MASTER_inat-lux-combined.xlsx"), sheet = 5)
 inat <- as.data.frame(inat)
@@ -117,11 +118,11 @@ condition <- inat$taxon_genus_name=="Neotinea" |
 
 inat$prot <- ifelse(condition, TRUE, FALSE)
 
-###### Prepare subset for spatial analyses
+############ Prepare subset for spatial analyses ----
  
-### Verifiable, not obscured, and with geoaccuracy below 250m
+###### Verifiable, not obscured, and with geoaccuracy below 250m
 
-# Which percentile is 250m?
+### Which percentile is 250m?
 quant <- ecdf(inat$public_positional_accuracy)
 quant(250)
 # RESULT: 81%
@@ -135,21 +136,22 @@ verif250notobsc <- inat[inat$quality_grade!="casual" &
 # Administrative boundary
 lux_borders <- readRDS("lux_borders.RDS")
 lux_borders_2169 <- st_transform(lux_borders, crs="EPSG:2169")
+
 # Just coords
 coords <- verif250notobsc[,c("longitude","latitude")]
 coords <- st_as_sf(x = coords, coords = c("longitude", "latitude"), crs = "EPSG:4326")
 coords <- st_transform(coords, crs="EPSG:2169")
 coords <- st_intersection(coords, lux_borders_2169)
 crop_logical <- st_contains(lux_borders_2169, coords, sparse=FALSE)
+
 # Go back to original file
 verif250notobsc <- verif250notobsc[which(crop_logical==TRUE),]
+
 # Add info back to sf object as fields
-coords2 <- st_as_sf(
+coords2 <-  st_transform(st_as_sf(
   x = verif250notobsc[which(crop_logical==TRUE), ],  # Use the filtered dataframe
   coords = c("longitude", "latitude"), 
-  crs = "EPSG:4326"
-) %>%
-  st_transform(crs = "EPSG:2169")
+  crs = "EPSG:4326"), crs = "EPSG:2169")
 
 ###### Saving data
 #save(inat, verif250notobsc, lux_borders, lux_borders_2169, coords, coords2, file="iNat.RData")
