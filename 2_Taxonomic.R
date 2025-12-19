@@ -6,136 +6,79 @@
 # Script objective : Analyses of the taxonomic focus section
 
 ############ Load data ----
-load("iNat.RData") # Created using 1_Data.R
+#load("iNat.RData") # Created using 1_Data.R
 
 ############ Loading libraries ----
 source("0_Libraries.R")
 
 ############ Completeness of species inventory ----
 
-###### Load iconic taxa 
+source("Figure_iNat_VS_national.R")
 
-###### iNat species richness
-inat_fig4 <- inatf[inatf$quality_grade=="research",]
+############ Number of observations per species in each select taxa (based on DiCecco 2022) ----
 
-uniq_inat <- inat_fig4 %>%
-  group_by(taxon_order_name) %>%
-  summarise(unique_count = n_distinct(taxon_species_name))
+###### Restrict to select taxa
+dc_classes <- c("Liliopsida", "Magnoliopsida", 
+                "Agaricomycetes", "Arachnida",
+                "Insecta","Actinopterygii",
+                "Amphibia", "Reptilia", "Aves","Mammalia")
 
-hist(uniq_inat$unique_count)
-print(uniq_inat, n=50)
-
-###### mData species richness
-files <- list.files(paste0(DATAPATH,"MDATA2025"), full.names = TRUE, pattern="*.csv")
-mdata <- do.call(rbind, lapply(files, function(x) read.csv(x, encoding="latin1")))
-
-### Keep only strict mini_mmum columns
-mini_m <- mdata[,c("Lat", "Long", "preferred","Taxon_Kingdom", "Taxon_Phylum",
-                          "Taxon_Class", "Taxon_Order")]
-
-### Keep only observations with species ID and geolocalisation (avoids old collection stuff)
-mini_m <- mini_m[complete.cases(mini_m$preferred),]
-mini_m <- mini_m[complete.cases(mini_m$Lat),]
-mini_m <- mini_m[complete.cases(mini_m$Long),]
-
-### Unique species
-uniq_mdata <- mini_m %>%
-  group_by(Taxon_Order) %>%
-  summarise(unique_count = n_distinct(preferred))
-
-hist(uniq_mdata$unique_count)
-print(uniq_mdata, n=70)
-
-###### INSECT SUBPLOT
-
-### mdata
-insect_mdata <- mini_m[mini_m$Taxon_Class=="Insecta",]
-
-insect_mdata <- insect_mdata %>%
-  group_by(Taxon_Order) %>%
-  summarise(unique_count = n_distinct(preferred))
-
-hist(insect_mdata$unique_count)
-print(insect_mdata, n=70)
-
-### inat
-insect_inat <- inat_fig4[inat_fig4$taxon_class_name=="Insecta",]
-
-insect_inat <- insect_inat %>%
-  group_by(taxon_order_name) %>%
-  summarise(unique_count = n_distinct(taxon_species_name))
-
-hist(insect_inat$unique_count)
-print(insect_inat, n=70)
-
-############ Number of observations per species in each iconic taxa ----
-
-###### Iconic taxa
-source("Taxa4Fig.R")
+inatf5 <- inat[inat$taxon_class_name %in% dc_classes & inat$taxon_species_name!="",]
 
 ###### Number of observations per species
-num_sp <- as.data.frame(table(inat$taxon_species_name))
+num_sp_f5 <- as.data.frame(table(inatf5$taxon_species_name))
+head(num_sp_f5 )
 
-###### Associate iconic taxa names to species
-uniq_figure_tax <- inatf %>%
-  arrange(taxon_species_name) %>%  # Order by species_taxon_name alphabetically
+###### Associate select taxa names to species
+uniq_figure_tax_f5 <- inatf5 %>%
+  filter(taxon_species_name != "" & !is.na(taxon_species_name)) %>%  # REMOVE EMPTY SPECIES NAMES
+  arrange(taxon_species_name) %>%
   group_by(taxon_species_name) %>%
-  summarise(taxon_figure_name = paste(unique(taxon_figure_name), collapse = ", ")) %>%
+  summarise(taxon_class_name = paste(unique(taxon_class_name), collapse = ", ")) %>%
   ungroup()
 
-# Problem
-which(!(uniq_figure_tax$taxon_species_name%in%num_sp$Var1))
-
-# Remove NA
-uniq_figure_tax <- uniq_figure_tax[-nrow(uniq_figure_tax),]
+# Checkpoint
+which(!(uniq_figure_tax_f5$taxon_species_name%in%num_sp_f5$Var1))
 
 ###### Combine
-df_fig5 <- cbind(num_sp, uniq_figure_tax$taxon_figure_name)
+df_fig5 <- cbind(num_sp_f5, uniq_figure_tax_f5$taxon_class_name)
 
 # Mean
-barplot <- aggregate(df_fig5$Freq, by=list(df_fig5$`uniq_figure_tax$taxon_figure_name`), FUN=mean)
+barplot <- aggregate(df_fig5$Freq, by=list(df_fig5$`uniq_figure_tax_f5$taxon_class_name`), FUN=mean)
 # Standard deviation
-barplot <- cbind(barplot, aggregate(df_fig5$Freq, by=list(df_fig5$`uniq_figure_tax$taxon_figure_name`), FUN=sd))
+barplot <- cbind(barplot, aggregate(df_fig5$Freq, by=list(df_fig5$`uniq_figure_tax_f5$taxon_class_name`), FUN=sd))
 # Cleaning
 barplot <- barplot[,-3]
 colnames(barplot) <- c("taxa", "mean", "sd")
-
-###### Plotting
-ggplot(barplot, aes(x = mean, y = reorder(taxa, mean))) +  # reorder taxa by mean
-  geom_bar(stat = "identity", fill = "skyblue") +       # horizontal bars
-  geom_errorbarh(aes(xmin = mean - sd, xmax = mean + sd), height = 0.2) +  # SD bars
-  labs(
-    title = "",
-    x = "Number of observations per species",
-    y = ""
-  ) +
-  theme_minimal()
 
 # Adjust xmin to start at the bar edge (mean) to avoid overlap
 barplot$xmin <- barplot$mean  # Lower limit starts at the bar
 barplot$xmax <- barplot$mean + barplot$sd  # Upper limit includes SD
 
-custom_colors <- c("Arachnids" = "red",
-                   "Birds" = "blue",
-                   "Flowering plants" = "green",
-                   "Fungi" = "orange",
-                   "Insects" = "pink",
-                   "Non-flowering vascular plants" = "purple",
-                   "Non-vascular plants" = "yellow",
-                   "Other invertebrates" = "black",
-                   "Other vertebrates" = "grey")
+custom_colors <- c(
+  "Liliopsida" = "#B2DF8A",
+  "Magnoliopsida" = "#33A02C",
+  "Agaricomycetes" = "#FB9A99",
+  "Arachnida" = "#E31A1C",
+  "Insecta" = "#FDBF6F",
+  "Actinopterygii" = "#FF7F00",
+  "Amphibia" = "#CAB2D6",
+  "Reptilia" = "#6A3D9A",
+  "Aves" = "#A6CEE3",
+  "Mammalia" = "#1F78B4"
+)
 
 # Create the horizontal barplot with adjusted error bars
 ggplot(barplot, aes(x = mean, y = reorder(taxa, mean), fill=taxa)) +  # reorder taxa by mean
   geom_bar(stat = "identity", show.legend = FALSE) +
-    geom_errorbarh(aes(xmin = xmin, xmax = xmax), height = 0) +  # Adjusted SD bars
+  geom_errorbarh(aes(xmin = xmin, xmax = xmax), height = 0) +  # Adjusted SD bars
   scale_fill_manual(values = custom_colors) +# horizontal bars
   labs(x = "Number of observations",
-    y = ""
+       y = ""
   ) +
   theme_minimal() + 
-  theme(axis.text=element_text(size=16, colour = "black"),
-        axis.title=element_text(size=18))
+  theme(axis.text=element_text(size=26, colour = "black"),
+        axis.title=element_text(size=28)) 
 
 ############ Other explorations ----
 

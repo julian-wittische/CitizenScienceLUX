@@ -6,6 +6,9 @@
 # Script objective : Load communes data and calculate metrics for each 
 
 ############ Loading libraries ----
+source("config.R")
+
+############ Loading libraries ----
 library(sf)
 library(tidyverse)
 
@@ -27,7 +30,7 @@ joined <- st_join(coords2, com, left = FALSE)
 ############ Calculate commune metrics ----
 
 #######################################
-metrcomm <- joined_ %>%
+metrcomm <- joined %>%
   st_drop_geometry() %>%
   group_by(COMMUNE) %>%
   summarise(
@@ -168,3 +171,18 @@ ggplot(com %>% filter(observations <= 10000),
 stat_smooth(method = "lm", formula = y ~ log(x), color = "red") +
   stat_smooth(method = "loess", span = 0.8, color = "blue")
 
+### Idée Tania
+
+# Create a color palette
+col_palette <- colorRampPalette(c("blue", "white", "red"))  # low->high
+
+# Map z to colors
+colors <- col_palette(100)[as.numeric(cut(log(commune_tab$observation), breaks = 100))]
+
+
+plot(commune_tab$species/commune_tab$observation, 
+     commune_tab$observation/commune_tab$observers,
+     col = colors, pch = 19, cex = 1.5)
+
+cor.test(commune_tab$species/commune_tab$observation, 
+     commune_tab$observation/commune_tab$observers)

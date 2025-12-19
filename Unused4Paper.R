@@ -1,3 +1,78 @@
+############ Number of observations per species in each iconic taxa ----
+
+###### Iconic taxa
+source("Taxa4Fig.R")
+
+###### Number of observations per species
+num_sp <- as.data.frame(table(inat$taxon_species_name))
+
+###### Associate iconic taxa names to species
+uniq_figure_tax <- inatf %>%
+  arrange(taxon_species_name) %>%  # Order by species_taxon_name alphabetically
+  group_by(taxon_species_name) %>%
+  summarise(taxon_figure_name = paste(unique(taxon_figure_name), collapse = ", ")) %>%
+  ungroup()
+
+# Problem
+which(!(uniq_figure_tax$taxon_species_name%in%num_sp$Var1))
+
+# Remove NA
+uniq_figure_tax <- uniq_figure_tax[-nrow(uniq_figure_tax),]
+
+###### Combine
+df_fig5 <- cbind(num_sp, uniq_figure_tax$taxon_figure_name)
+
+# Mean
+barplot <- aggregate(df_fig5$Freq, by=list(df_fig5$`uniq_figure_tax$taxon_figure_name`), FUN=mean)
+# Standard deviation
+barplot <- cbind(barplot, aggregate(df_fig5$Freq, by=list(df_fig5$`uniq_figure_tax$taxon_figure_name`), FUN=sd))
+# Cleaning
+barplot <- barplot[,-3]
+colnames(barplot) <- c("taxa", "mean", "sd")
+
+###### Plotting
+ggplot(barplot, aes(x = mean, y = reorder(taxa, mean))) +  # reorder taxa by mean
+  geom_bar(stat = "identity", fill = "skyblue") +       # horizontal bars
+  geom_errorbarh(aes(xmin = mean - sd, xmax = mean + sd), height = 0.2) +  # SD bars
+  labs(
+    title = "",
+    x = "Number of observations per species",
+    y = ""
+  ) +
+  theme_minimal()
+
+# Adjust xmin to start at the bar edge (mean) to avoid overlap
+barplot$xmin <- barplot$mean  # Lower limit starts at the bar
+barplot$xmax <- barplot$mean + barplot$sd  # Upper limit includes SD
+
+custom_colors <- c("Arachnids" = "red",
+                   "Birds" = "blue",
+                   "Flowering plants" = "green",
+                   "Fungi" = "orange",
+                   "Insects" = "pink",
+                   "Non-flowering vascular plants" = "purple",
+                   "Non-vascular plants" = "yellow",
+                   "Other invertebrates" = "black",
+                   "Other vertebrates" = "grey")
+
+# Create the horizontal barplot with adjusted error bars
+ggplot(barplot, aes(x = mean, y = reorder(taxa, mean), fill=taxa)) +  # reorder taxa by mean
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  geom_errorbarh(aes(xmin = xmin, xmax = xmax), height = 0) +  # Adjusted SD bars
+  scale_fill_manual(values = custom_colors) +# horizontal bars
+  labs(x = "Number of observations",
+       y = ""
+  ) +
+  theme_minimal() + 
+  theme(axis.text=element_text(size=16, colour = "black"),
+        axis.title=element_text(size=18)) 
+
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 ################################################################################
 
 ####################### SONLEZ PAMER ERROR
