@@ -1,0 +1,15 @@
+################################################################################
+################### GOAL: paleontological data analysis ########################
+################################################################################
+# Author: Julian Wittische (Musée National d'Histoire Naturelle Luxembourg)
+# Request: self/Robert Weis/Driss Sadki
+# Start: January 2026
+# Data: MNHNL
+################################################################################
+############ SCRIPT OBJECTIVE: configuration file
+################################################################################
+
+############ Data paths on your computer/server
+
+###### PALEO data
+DATAPATH <- "/yourdatafolderpath/"
