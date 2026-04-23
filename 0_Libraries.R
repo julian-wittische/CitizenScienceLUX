@@ -22,6 +22,8 @@ library(mapview)
 library(ggplot2) #keep
 #library(units) #remove if not used
 library(sjPlot) # keep: plot_model
+library(patchwork) # keep: used to put plots together
+library(scales)
 
 ############ Data manipulation ----
 #library(magrittr)

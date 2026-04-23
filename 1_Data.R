@@ -9,9 +9,7 @@
 source("config.R")
 
 ############ Loading libraries ----
-#source("0_Libraries.R")
-library(readxl)
-library(sf)
+source("0_Libraries.R")
 
 ############ Load and preprocess observations ----
 ### Original data
@@ -182,4 +180,4 @@ coords2 <-  st_transform(st_as_sf(
 
 ###### Saving data
 #save(inat, verif250notobsc, lux_borders, lux_borders_2169, coords, coords2, file="iNat.RData")
-st_write(coords, "verif_noObscured_goodprec.gpkg", append=FALSE)
+#st_write(coords, "verif_noObscured_goodprec.gpkg", append=FALSE)

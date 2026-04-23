@@ -11,6 +11,9 @@
 ############ Loading libraries ----
 source("0_Libraries.R")
 
+############ Loading iNat data ----
+source("1_Data.R")
+
 ############ Completeness of species inventory ----
 
 source("Figure_iNat_VS_national.R")
