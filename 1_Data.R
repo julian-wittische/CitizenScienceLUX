@@ -12,25 +12,15 @@ source("config.R")
 source("0_Libraries.R")
 
 ############ Load and preprocess observations ----
-### Original data
-inat <- read_excel(paste0(DATAPATH,"MASTER_inat-lux-combined.xlsx"), sheet = 5)
-inat <- as.data.frame(inat)
-inat_all <- inat
-
-### New data (29-08-2025)
-path <- normalizePath(paste0(DATAPATH,"data obs LUX/download260925"))
-temp <- list.files(path=path, pattern="\\.csv$", full.names = TRUE)
-inat <- lapply(temp, read.csv)
-inat <- do.call(rbind, inat)
-dim(inat) # difference with online number - just removed ones without coordinates?
-
+### Data 2026
+inat <- read.csv(paste0(DATAPATH,"inat010726/observations-753844.csv"))
+dim(inat) #number is different from online? No coordinates ones?
 ### Remove observations with incomplete coordinates
 inat  <- inat[complete.cases(inat$longitude),]
 inat  <- inat[complete.cases(inat$latitude),]
 dim(inat) #same number giving answer to difference - see above
 
 ############ Add protected, introduced, invasive statuses ----
-
 ###### Invasive (according to latest Neobiota national list - not EU)
 inv <- read_xlsx(paste0(ENVIPATH,"neobiota_list.xlsx"))
 inat$inv <- inat$scientific_name %in% inv$Species_name
@@ -85,13 +75,6 @@ ssc <- unique(prosp[prosp$rank=="species complex", "Species"])[4:13,1]
 ssc <- ssc$Species
 ssc <- gsub('[\"“”„]', '', ssc)
 
-expand_species <- function(s) {
-  parts <- strsplit(s, " ")[[1]]
-  if (length(parts) < 2) return(s)  # skip if malformed or single-word
-  genus <- parts[1]
-  species <- unlist(strsplit(parts[2], "/"))
-  paste(genus, species)
-}
 ssc_expanded <- unlist(lapply(ssc, expand_species))
 
 ### Family level

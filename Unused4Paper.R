@@ -444,3 +444,63 @@ for (i in 1:length(observer$user)){
   print(paste(round(i/length(observer$user)*100),"%",";", i, "th user"))
 }
 observer <- observer[!(1:nrow(observer) %in% to_remove_index),]
+
+################################################################################
+################################################################################
+################################################################################
+
+# Get coverage at reference sample size for each site
+site_info <- result$DataInfo %>%
+  dplyr::select(Assemblage, n, SC)
+
+# Plot to find natural break (as we discussed)
+site_info %>%
+  ggplot(aes(x = n, y = SC)) +
+  geom_point() +
+  geom_text(aes(label = Assemblage), size = 2, hjust = -0.1) +
+  scale_x_log10() +
+  labs(x = "Sample size (log scale)", y = "Coverage at reference n")
+
+# Then apply your chosen threshold, e.g. SC > 0.6
+good_sites <- site_info %>%
+  filter(SC > 0.2) %>%   # <-- adjust based on your plot
+  pull(Assemblage)
+
+
+comparison <- result$iNextEst$coverage_based %>%
+  filter(
+    Assemblage %in% good_sites,
+    Order.q == 1  # q=1 as we discussed
+  ) %>%
+  group_by(Assemblage) %>%
+  slice_min(abs(SC - 0.5), n = 1) %>%  # row closest to target
+  dplyr::select(Assemblage, m, SC, qD, qD.LCL, qD.UCL)
+
+# m here tells you the sample size iNEXT used to reach that coverage
+# for poorly sampled sites m < n_ref (rarefaction)
+# for well sampled sites m > n_ref (extrapolation)
+comparison
+
+# Join with original n to see direction
+comparison <- comparison %>%
+  left_join(site_info, by = "Assemblage") %>%
+  mutate(direction = ifelse(m < n, "rarefied", "extrapolated"))
+
+comparison$direction
+
+all_cov <- cbind(result$DataInfo[order(result$DataInfo$Assemblage),], comparison[order(comparison$Assemblage),])
+plot(all$qD, all$S.obs)
+#####################################################################################
+#####################################################################################
+
+### Original data
+# inat <- read_excel(paste0(DATAPATH,"MASTER_inat-lux-combined.xlsx"), sheet = 5)
+# inat <- as.data.frame(inat)
+# inat_all <- inat
+
+# ### Data 2025 (29-08-2025)
+# path <- normalizePath(paste0(DATAPATH,"data obs LUX/download260925"))
+# temp <- list.files(path=path, pattern="\\.csv$", full.names = TRUE)
+# inat <- lapply(temp, read.csv)
+# inat <- do.call(rbind, inat)
+# dim(inat) # difference with online number - just removed ones without coordinates?

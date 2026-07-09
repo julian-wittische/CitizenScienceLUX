@@ -53,6 +53,7 @@ library(lme4)
 library(DHARMa)
 library(performance)
 library(MuMIn)
+library(iNEXT) # Estimating species richness
 
 ############ Date  ----
 library(lubridate) #remove if not used
