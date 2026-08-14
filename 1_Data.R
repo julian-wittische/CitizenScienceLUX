@@ -37,20 +37,6 @@ sum(inat$introd2)
 # Check which ones are invasive but not introduced
 unique(inat[inat$inv==T & inat$introd==F,"scientific_name"])
 
-### Percentages
-# Number of observations of protected species in dataset (not in law)
-table(inat$introd2)
-# Ratio
-nrow(inat[inat$introd2==TRUE,])/nrow(inat)
-
-# Number of protected species in dataset (not in law)
-length(unique(inat[inat$introd2==TRUE,]$taxon_species_name))
-# Number of species in dataset (not in law)
-length(unique(inat$taxon_species_name))
-# Ratio
-length(unique(inat[inat$introd2,]$taxon_species_name))/length(unique(inat$taxon_species_name))
-
-
 ###### Protected
 prosp_fauna <- read_xlsx(paste0(ENVIPATH,"espèces_protégées_luxembourg.xlsx"), sheet=1)
 prosp_flora <- read_xlsx(paste0(ENVIPATH,"espèces_protégées_luxembourg.xlsx"), sheet=2)
@@ -113,18 +99,6 @@ condition <- inat$taxon_genus_name=="Neotinea" |
 
 inat$prot <- ifelse(condition, TRUE, FALSE)
 
-### Percentages
-# Number of observations of protected species in dataset (not in law)
-table(inat$prot)
-# Ratio
-nrow(inat[inat$prot==TRUE,])/nrow(inat)
-
-# Number of protected species in dataset (not in law)
-length(unique(inat[inat$prot==TRUE,]$taxon_species_name))
-# Number of species in dataset (not in law)
-length(unique(inat$taxon_species_name))
-# Ratio
-length(unique(inat[inat$prot==TRUE,]$taxon_species_name))/length(unique(inat$taxon_species_name))
 
 ############ Prepare subset for spatial analyses ----
  
@@ -133,10 +107,13 @@ length(unique(inat[inat$prot==TRUE,]$taxon_species_name))/length(unique(inat$tax
 ### Which percentile is 250m?
 quant <- ecdf(inat$public_positional_accuracy)
 quant(250)
-# RESULT: 81%
 
+### Median accuracy
+median(inat$public_positional_accuracy, na.rm = T)
+
+### Subsetting
 verif250notobsc <- inat[inat$quality_grade!="casual" &
-                          inat$coordinates_obscured=="false" & (
+                          inat$coordinates_obscured=="FALSE" & (
                           inat$public_positional_accuracy<=250|is.na(inat$public_positional_accuracy)),]
 
 

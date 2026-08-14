@@ -12,7 +12,51 @@
 source("0_Libraries.R")
 
 ############ Loading iNat data ----
-source("1_Data.R")
+load("iNat.RData")
+
+############ Simple descriptive stats  ----
+
+###### Introduced
+### Percentages
+# Number of observations of protected species in dataset (not in law)
+table(inat$introd2)
+# Ratio
+nrow(inat[inat$introd2==TRUE,])/nrow(inat)
+# Number of protected species in dataset (not in law)
+length(unique(inat[inat$introd2==TRUE,]$taxon_species_name))
+# Number of species in dataset (not in law)
+length(unique(inat$taxon_species_name))
+# Ratio
+length(unique(inat[inat$introd2,]$taxon_species_name))/length(unique(inat$taxon_species_name))
+
+### Top 3 most observed
+sort(table(inat[inat$introd2,]$taxon_species_name), decreasing=T)[1:30]
+
+### Fungi
+table(inat[inat$introd2 & (inat$taxon_kingdom_name %!in% c("Animalia", "Plantae")),]$taxon_species_name)
+
+###### Protected
+### Percentages
+# Number of observations of protected species in dataset (not in law)
+table(inat$prot)
+# Ratio
+nrow(inat[inat$prot==TRUE,])/nrow(inat)
+
+# Number of protected species in dataset (not in law)
+length(unique(inat[inat$prot==TRUE,]$taxon_species_name))
+# Number of species in dataset (not in law)
+length(unique(inat$taxon_species_name))
+# Ratio
+length(unique(inat[inat$prot==TRUE,]$taxon_species_name))/length(unique(inat$taxon_species_name))
+
+### Top 3 most observed
+sort(table(inat[inat$prot,]$taxon_species_name), decreasing=TRUE)[1:10]
+sort(table(inat[inat$prot & (inat$taxon_kingdom_name %in% c("Plantae")),]$taxon_species_name), decreasing=TRUE)[1:10]
+
+### Fungi
+table(inat[inat$prot & (inat$taxon_kingdom_name %!in% c("Animalia", "Plantae")),]$taxon_species_name)
+
+
 
 ############ Completeness of species inventory ----
 
