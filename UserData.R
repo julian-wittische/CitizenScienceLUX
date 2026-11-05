@@ -29,7 +29,7 @@ ALL_OBS <- data.frame()
 for (i in 1:nrow(observer2)){
   temp_pre <- Sys.time()
   cat(paste0("User number ", i, " out of ", nrow(observer2), " (ID: ",observer2$user_id[i], ")"), sep="\n")
-  ALL_OBS <- safe_rbind(ALL_OBS, get_all_obs_user_json_JW(observer2$user_id[i], delay=1, beep=FALSE))
+  ALL_OBS <- safe_rbind(ALL_OBS, get_all_obs_user_json_JW(observer2$user_id[i], delay=0.5, beep=FALSE))
   cat(paste0(round(i/nrow(observer2),2)*100, "% of observers done"),
       paste0(difftime(Sys.time(),temp_pre, units="mins"), " mins"),
       sep="\n")
