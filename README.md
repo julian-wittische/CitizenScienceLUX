@@ -1,4 +1,4 @@
-# CitizenScienceLUX
+# CitizenScienceLUX (THIS README IS INACCURATE AND A WORK IN PROGRESS)
 
 ## Project goal
 
@@ -11,7 +11,7 @@ The project is organized into five main sections, numbered according to their po
 ### 0. Initialization
 `Initialization.R` –  Initializes the environment and loads packages
 - `config.R` – One should always use a local configuration file so each user uses their own paths for data without the need to change any line of code in any other file. We provide a template.
-– `Libraries.R` – 
+– `Libraries.R` – Loading all the libraries required; I put it in a single scipt to make it easier to keep it clean and so it is easier to use renv later
 
 
 ### 1. Data
@@ -21,8 +21,6 @@ The project is organized into five main sections, numbered according to their po
 - `get_obs.R`
 - `CitizenScienceLUX.R`
 - `Origin.R`
-- `Accessibility.R`
-- `Activity.R`
 
 ### 2. Taxonomic
 `2_Taxonomic.R` – Taxonomic standardization, identification processing, and richness analyses.
@@ -44,6 +42,7 @@ The project is organized into five main sections, numbered according to their po
 - `ProtectedAreas.R`
 - `RoadData.R`
 - `Territory.R`
+- - `Accessibility.R`
 
 ### 4. User
 `4_User.R` – User-level data processing and characterization.
@@ -53,8 +52,9 @@ The project is organized into five main sections, numbered according to their po
 - `First_observation_user.R`
 - `get_inat_obs_user_JW.R`
 - `get_all_obs_user_json_JW.R`
+- - `Activity.R`
 
-## Additional scripts
+## Additional scripts (SORT)
 
 Scripts for specific figures, exploratory analyses, testing, and supplementary operations that are not necessarily part of the main workflow.
 
@@ -62,15 +62,11 @@ Scripts for specific figures, exploratory analyses, testing, and supplementary o
 - **Exploration and testing:** `Exploration_with_Matteo.R`, `Testing.R`, `Testing2.R`, `japg_102916_analysis.R`, `Unused4Paper.R`, `Pres2204.R`
 - **Utilities:** `utils.R`, `fun2.R`, `fun3.R`, `fun4.R`
 
-## Configuration and resources
+## Non-script files
 
 - `.Rprofile` – Session initialization.
 - `.gitignore` – Git exclusions.
-- `config.R.example` – Example configuration.
-- `CitizenScienceLUX.Rproj` – RStudio project.
+- `config.R.example` – Example for a local configuration file.
+- `CitizenScienceLUX.Rproj` – RStudio project
 - `LICENSE` – License.
 - Other `.csv`, `.gpkg`, `.RDS`, `.png`, `.pdf`, and `.html` files – Data, intermediate products, and generated outputs.
-
-## Execution
-
-Open `CitizenScienceLUX.Rproj` in RStudio and execute the numbered scripts in order, starting with `0_Libraries.R`. Each main script sources its subordinate scripts as required.
